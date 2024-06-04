@@ -31,6 +31,9 @@ public class Rf2FileExportRunner {
         }
         final File internationalPackage = findInternationalPackage(packages);
         if (internationalPackage == null) throw new IllegalArgumentException("International package must be provided.");
+        final Set<File> extensionPackages = findExtensionsPackages(packages, internationalPackage);
+        if (extensionPackages.isEmpty()) throw new IllegalArgumentException("Extension package must be provided.");
+
         String internationalEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(internationalPackage.getName());
         File inputDirectory = null;
         try {
@@ -42,9 +45,6 @@ public class Rf2FileExportRunner {
             unzipPackage(internationalPackage, unzippedInternationalFolder.getAbsolutePath());
 
             // Walk through all extension packages
-            final Set<File> extensionPackages = findExtensionsPackages(packages, internationalPackage);
-            assert !extensionPackages.isEmpty();
-
             for (File file : extensionPackages) {
                 String extensionEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(file.getName());
                 File unzippedFolder = new File(inputDirectory.getAbsolutePath() + SLASH + EXTENSION + SLASH + file.getName());
@@ -201,7 +201,7 @@ public class Rf2FileExportRunner {
     }
 
     private void unzipPackage(File source, String destination) throws IOException {
-        LOGGER.info("Unzipping package {}...", source.getName());
+        LOGGER.info("Unzipping the package {}...", source.getName());
         try (ZipFile zipFile = new ZipFile(source)) {
             zipFile.extractAll(destination);
         } catch (ZipException e) {

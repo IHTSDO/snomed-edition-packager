@@ -39,15 +39,19 @@ public class PackageCommand {
             File[] filesList = dir.listFiles();
             assert filesList != null;
             for (File file : filesList) {
-                if (file.isFile()
-                    && (file.getName().startsWith(RF2Constants.SNOMEDCT) || file.getName().startsWith(RF2Constants.BETA_RELEASE_PREFIX + RF2Constants.SNOMEDCT))
-                    && file.getName().endsWith(RF2Constants.ZIP_FILE_EXTENSION)) {
+                if (file.isFile() && validSnomedRelease(file.getName())) {
                     filenames.add(file.getName());
                 }
             }
         } else {
-            filenames = new HashSet<>(Arrays.asList(arguments));
+            filenames = Arrays.stream(arguments).filter(this::validSnomedRelease).collect(Collectors.toSet());
         }
         return filenames;
     }
+
+    private boolean validSnomedRelease(String filename) {
+        return (filename.startsWith(RF2Constants.SNOMEDCT) || filename.startsWith(RF2Constants.BETA_RELEASE_PREFIX + RF2Constants.SNOMEDCT))
+                && filename.endsWith(RF2Constants.ZIP_FILE_EXTENSION);
+    }
+
 }
