@@ -12,6 +12,7 @@
     <groupId>org.snomed</groupId>
     <artifactId>snomed-edition-packager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>snomed-edition-packager</name>
     <description>Command line tool for combining several RF2 packages into one singular package.</description>
@@ -20,6 +21,22 @@
         <dependency>
             <groupId>org.springframework.shell</groupId>
             <artifactId>spring-shell-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ihtsdo.snomed.util</groupId>
+            <artifactId>snomed-utilities</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ihtsdo.otf.common</groupId>
+            <artifactId>otf-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>2.11.3</version>
         </dependency>
 
         <dependency>
@@ -51,6 +68,28 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.snomed.snomededitionpackager.Main</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
