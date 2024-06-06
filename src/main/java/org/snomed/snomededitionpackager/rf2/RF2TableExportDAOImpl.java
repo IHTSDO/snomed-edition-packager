@@ -1,16 +1,20 @@
 package org.snomed.snomededitionpackager.rf2;
 
-import org.ihtsdo.otf.rest.exception.BadConfigurationException;
+import org.ihtsdo.otf.rest.exception.BusinessServiceException;
 import org.ihtsdo.snomed.util.rf2.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.snomed.snomededitionpackager.key.*;
+import org.snomed.snomededitionpackager.key.Key;
+import org.snomed.snomededitionpackager.key.SCTIDKey;
+import org.snomed.snomededitionpackager.key.StringKey;
+import org.snomed.snomededitionpackager.key.UUIDKey;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class RF2TableExportDAOImpl implements RF2TableExportDAO {
 
@@ -18,9 +22,7 @@ public class RF2TableExportDAOImpl implements RF2TableExportDAO {
 
 	private final SchemaFactory schemaFactory;
 
-	private TableSchema tableSchema;
-
-	private DataType idType;
+    private DataType idType;
 
 	private Map<Key, String> table;
 
@@ -30,12 +32,20 @@ public class RF2TableExportDAOImpl implements RF2TableExportDAO {
 	}
 
 	@Override
-	public TableSchema createTable(final String filename, final InputStream rf2InputStream) throws IOException, FileRecognitionException, BadConfigurationException {
+	public void close() {
+		if ( table != null) {
+			table.clear();
+			table = null;
+		}
+	}
+
+	@Override
+	public TableSchema createTable(final String filename, final InputStream rf2InputStream) throws IOException, FileRecognitionException, BusinessServiceException {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(rf2InputStream, RF2Constants.UTF_8))) {
 			// Product Schema
 			LOGGER.info("Creating table from {}", filename);
 			final String headerLine = getHeader(filename, reader);
-			tableSchema = schemaFactory.createSchemaBean(filename);
+            TableSchema tableSchema = schemaFactory.createSchemaBean(filename);
 			if (tableSchema == null) {
 				throw new FileRecognitionException("Failed to create a tableSchema using RF2 filename: " + filename);
 			}
@@ -50,9 +60,12 @@ public class RF2TableExportDAOImpl implements RF2TableExportDAO {
 	}
 
 	@Override
-	public void appendData(final TableSchema tableSchema, final InputStream rf2InputStream) throws IOException, BadConfigurationException {
+	public void appendData(final TableSchema tableSchema, final InputStream rf2InputStream) throws IOException {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(rf2InputStream, RF2Constants.UTF_8))) {
-			reader.readLine(); // Discard header line
+			final String headerLine = reader.readLine(); // Discard header line
+			if (headerLine == null) {
+				LOGGER.error("Header line could not be found for file {}", tableSchema.getFilename());
+			}
 			insertData(reader, tableSchema);
 		}
 	}
@@ -62,38 +75,22 @@ public class RF2TableExportDAOImpl implements RF2TableExportDAO {
 		return new RF2TableResultsMapImpl(table);
 	}
 
-	@Override
-	public void closeConnection() {
-		if ( table != null) {
-			table.clear();
-			table = null;
-		}
-	}
-	private String getHeader(final String filename, final BufferedReader reader) throws IOException {
+	private String getHeader(final String filename, final BufferedReader reader) throws IOException, BusinessServiceException {
 		final String headerLine = reader.readLine();
 		if (headerLine == null) {
-			throw new RuntimeException("RF2 file " + filename + " is empty.");
+			throw new BusinessServiceException("RF2 file " + filename + " is empty.");
 		}
 		return headerLine;
 	}
 
-	private void insertData(final BufferedReader reader, final TableSchema tableSchema) throws IOException, BadConfigurationException {
-		insertData(reader, tableSchema, null);
-	}
-
-	private void insertData(final BufferedReader reader, final TableSchema tableSchema, String previousEffectiveDate) throws IOException {
+	private void insertData(final BufferedReader reader, final TableSchema tableSchema) throws IOException {
 		// Declare variables at top to prevent constant memory reallocation during recursion
 		String line;
 		String[] parts;
 		Key key;
 		// date format is always in yyyyMMdd so it is faster to compare as integer
-		Integer previousDate = previousEffectiveDate != null ? Integer.parseInt(previousEffectiveDate) : null;
 		while ((line = reader.readLine()) != null) {
 			parts = line.split(RF2Constants.COLUMN_SEPARATOR, 3);
-			if (previousDate != null && Integer.parseInt(parts[1]) <= previousDate) {
-				// skip data from previous release
-				continue;
-			}
 			key = tableSchema.getComponentType() == ComponentType.IDENTIFIER ? getIdentifierCompositeKey(line) : getKey(parts[0], parts[1]);
 			table.put(key, parts[2]);
 		}

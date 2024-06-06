@@ -21,4 +21,12 @@ public class ReleasePackageUtils {
 		}
 		return null;
 	}
+
+	public static String getNamespaceFromExtensionRf2File(String filename) {
+		if (filename != null && filename.endsWith(RF2Constants.TXT_FILE_EXTENSION)) {
+			String [] splits = filename.split(RF2Constants.FILE_NAME_SEPARATOR);
+			return splits[splits.length - 2];
+		}
+		return null;
+	}
 }

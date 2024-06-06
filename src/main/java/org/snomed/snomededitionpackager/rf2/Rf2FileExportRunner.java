@@ -29,144 +29,132 @@ public class Rf2FileExportRunner {
             if (!file.getName().endsWith(ZIP_FILE_EXTENSION))
                 throw new IllegalArgumentException(String.format("Package %s must be ended with zip extension.", file.getName()));
         }
+
         final File internationalPackage = findInternationalPackage(packages);
         if (internationalPackage == null) throw new IllegalArgumentException("International package must be provided.");
         final Set<File> extensionPackages = findExtensionsPackages(packages, internationalPackage);
         if (extensionPackages.isEmpty()) throw new IllegalArgumentException("Extension package must be provided.");
 
-        String internationalEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(internationalPackage.getName());
+        String intEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(internationalPackage.getName());
+        String extensionEffectiveTime = null;
+        String extensionNamespace = null;
+        boolean betaRelease = false;
         File inputDirectory = null;
+        File outputDirectory = null;
+
         try {
             inputDirectory = createFolder(INPUT_FOLDER);
-            File outputDirectory = createFolder(OUTPUT_FOLDER);
+            outputDirectory = createFolder(OUTPUT_FOLDER);
 
             // Unzip international release
-            File unzippedInternationalFolder = new File(inputDirectory.getAbsolutePath() + SLASH + INTERNATIONAL);
-            unzipPackage(internationalPackage, unzippedInternationalFolder.getAbsolutePath());
+            File unzippedInternationalFolder = unzipPackage(internationalPackage,inputDirectory.getAbsolutePath() + SLASH + INTERNATIONAL);
+            List<String> internationalFilesUsedByExtension = new ArrayList<>();
 
             // Walk through all extension packages
             for (File file : extensionPackages) {
-                String extensionEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(file.getName());
-                File unzippedFolder = new File(inputDirectory.getAbsolutePath() + SLASH + EXTENSION + SLASH + file.getName());
-                unzipPackage(file, unzippedFolder.getAbsolutePath());
+                if (extensionEffectiveTime == null) {
+                    extensionEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(file.getName());
+                }
+                File unzippedExtensionFolder = unzipPackage(file, inputDirectory.getAbsolutePath() + SLASH + EXTENSION + SLASH + file.getName());
                 List<File> files = new ArrayList<>();
-                listFiles(unzippedFolder.getAbsolutePath(), files);
+                listFiles(unzippedExtensionFolder.getAbsolutePath(), files);
                 for (File thisFile : files) {
                     if (!isValidRF2FullFile(thisFile)) {
                         continue;
                     }
-                    combineRF2File(outputDirectory, thisFile, unzippedInternationalFolder, internationalEffectiveTime, extensionEffectiveTime);
+                    if (extensionNamespace == null) {
+                        extensionNamespace = ReleasePackageUtils.getNamespaceFromExtensionRf2File(thisFile.getName());
+                        betaRelease = file.getName().startsWith(BETA_RELEASE_PREFIX);
+                    }
+                    combineRF2File(outputDirectory, thisFile, unzippedInternationalFolder, intEffectiveTime, extensionEffectiveTime, internationalFilesUsedByExtension);
                 }
             }
+
+            // Copy all INT Full files to the new edition if they are not being used by the extension
+            copyMissingFilesFromInternationalPackage(outputDirectory, unzippedInternationalFolder, internationalFilesUsedByExtension, intEffectiveTime, extensionEffectiveTime, extensionNamespace, betaRelease);
+
             // Zip the new Edition package
             String zipFilename = extensionPackages.size() == 1 ? extensionPackages.iterator().next().getName() : "Edition.zip";
             zipPackage(outputDirectory, zipFilename);
 
             LOGGER.info("A new Edition package has been built completely. You can find it in {}", outputDirectory.getAbsolutePath());
-
-            // Delete the folders inside the output
-            FileUtils.forceDelete(new File(outputDirectory + SLASH + FULL));
-            FileUtils.forceDelete(new File(outputDirectory + SLASH + SNAPSHOT));
         } finally {
-            if (inputDirectory != null) {
-                FileUtils.forceDelete(inputDirectory);
-            }
+            cleanupTemporaryFolders(inputDirectory, outputDirectory);
         }
     }
 
-    private File createFolder(String folderName) throws IOException {
-        File folder = (new File(folderName));
-        if (folder.exists()) {
-            FileUtils.cleanDirectory(folder); //clean out directory
-            FileUtils.forceDelete(folder); //delete directory
-        }
-        FileUtils.forceMkdir(folder); //create directory
-        return folder;
-    }
-
-    private static boolean isValidRF2FullFile(File thisFile) {
-        return !thisFile.isDirectory()
-                && thisFile.getName().endsWith(TXT_FILE_EXTENSION)
-                && (thisFile.getName().contains(FULL + FILE_NAME_SEPARATOR) || thisFile.getName().contains(FULL + DASH));
-    }
-
-    private void combineRF2File(File output, File extensionRf2File, File internationalFile, String internationalEffectiveTime, String extensionEffectiveTime) {
-        RF2TableExportDAO rf2TableDAO = null;
-        TableSchema tableSchema = null;
-        try {
-            // Create table containing transformed input delta
-            rf2TableDAO = new RF2TableExportDAOImpl();
-            tableSchema = rf2TableDAO.createTable(extensionRf2File.getName(), new FileInputStream(extensionRf2File));
+    private void combineRF2File(File output, File extensionRf2File, File internationalFile, String internationalEffectiveTime, String extensionEffectiveTime, List<String> internationalFilesUsedByExtension) {
+        try (RF2TableExportDAO rf2TableDAO = new RF2TableExportDAOImpl()){
+            TableSchema tableSchema = rf2TableDAO.createTable(extensionRf2File.getName(), new FileInputStream(extensionRf2File));
 
             // Populate data from International Full
-            try(InputStream intFullStream = getEquivalentInternationalFull(extensionRf2File.getName(), internationalFile, internationalEffectiveTime)) {
-                if (intFullStream != null) {
+            File intFullFile = getEquivalentInternationalFull(extensionRf2File.getName(), internationalFile, internationalEffectiveTime);
+            if (intFullFile != null) {
+                internationalFilesUsedByExtension.add(intFullFile.getName());
+                try (InputStream intFullStream =  new FileInputStream(intFullFile);){
                     rf2TableDAO.appendData(tableSchema, intFullStream);
-                } else {
-                    //  RefSet files specific to extensions will not have equivalent files in the international release.
-                    LOGGER.info("No equivalent full file found in dependency package for {}", extensionRf2File.getName());
                 }
+            } else {
+                //  RefSet files specific to extensions will not have equivalent files in the international release.
+                LOGGER.info("No equivalent full file found in dependency package for {}", extensionRf2File.getName());
             }
 
             // Export ordered Snapshot and Full files
-            final Rf2FileWriter rf2FileWriter = new Rf2FileWriter();
-            final RF2TableResults fullResultSet = rf2TableDAO.selectAllOrdered(tableSchema);
-            final String currentSnapshotFileName = constructSnapshotFilename(extensionRf2File.getName());
-            final String currentFullFileName = extensionRf2File.getName();
-            String sourcePath = SLASH + getSourcePath(extensionRf2File.getAbsolutePath());
-
-            File outputRF2FullFolder = new File(output.getAbsoluteFile() + SLASH + FULL + sourcePath);
-            if (!outputRF2FullFolder.exists()) {
-                FileUtils.forceMkdir(outputRF2FullFolder); //create directory
-            }
-            File outputRF2SnapshotFolder = new File(output.getAbsoluteFile() + SLASH + SNAPSHOT + sourcePath);
-            if (!outputRF2SnapshotFolder.exists()) {
-                FileUtils.forceMkdir(outputRF2SnapshotFolder); //create directory
-            }
-            try (OutputStream fullFileOutputStream = new FileOutputStream(outputRF2FullFolder + SLASH + currentFullFileName);
-                 OutputStream snapshotFileOutputStream = new FileOutputStream(outputRF2SnapshotFolder + SLASH + currentSnapshotFileName)) {
-                rf2FileWriter.exportFullAndSnapshot(fullResultSet, tableSchema, extensionEffectiveTime, fullFileOutputStream, snapshotFileOutputStream);
-                LOGGER.debug("Completed processing full and snapshot files for {}", tableSchema.getTableName());
-            }
+            exportFullAndSnapshot(output, extensionRf2File.getAbsolutePath(), extensionRf2File.getName(), extensionEffectiveTime, rf2TableDAO, tableSchema);
         } catch (final Exception e) {
             final String errorMsg = "Failed to generate subsequent full and snapshot release files due to: " + ExceptionUtils.getRootCauseMessage(e);
             LOGGER.error(errorMsg);
-        } finally {
-            // Clean up time
-            if (rf2TableDAO != null) {
-                try {
-                    rf2TableDAO.closeConnection();
-                } catch (final Exception e) {
-                    LOGGER.error("Failure while trying to clean up after {}", tableSchema != null ? tableSchema.getTableName() : "No table yet.", e);
+        }
+    }
+
+    private void copyMissingFilesFromInternationalPackage(File output, File internationalPackage, List<String> internationalFilesUsedByExtension, String intEffectiveTime, String extensionEffectiveTime, String extensionNamespace, boolean betaRelease) {
+        List<File> allIntFiles = new ArrayList<>();
+        listFiles(internationalPackage.getAbsolutePath(), allIntFiles);
+        List<File> missingFullFiles = allIntFiles.stream().filter(file -> isValidRF2FullFile(file) && !internationalFilesUsedByExtension.contains(file.getName())).toList();
+        for (File file : missingFullFiles) {
+            LOGGER.info("Copying the missing INT full file to the new Edition: {}", file.getName());
+            try (RF2TableExportDAO rf2TableDAO = new RF2TableExportDAOImpl()) {
+                TableSchema tableSchema = rf2TableDAO.createTable(file.getName(), new FileInputStream(file));
+                String fullFileName = file.getName().replace(INT_NAMESPACE, FILE_NAME_SEPARATOR + extensionNamespace + FILE_NAME_SEPARATOR).replace(intEffectiveTime, extensionEffectiveTime);
+                if (betaRelease) {
+                    fullFileName = BETA_RELEASE_PREFIX + fullFileName;
                 }
+                // Export ordered Snapshot and Full files
+                exportFullAndSnapshot(output, file.getAbsolutePath(), fullFileName, extensionEffectiveTime, rf2TableDAO, tableSchema);
+            } catch (final Exception e) {
+                final String errorMsg = "Failed to generate subsequent full and snapshot release files due to: " + ExceptionUtils.getRootCauseMessage(e);
+                LOGGER.error(errorMsg);
             }
         }
     }
 
-    private String getSourcePath(String absolutePath) {
-        if (System.getProperty("os.name").contains("Windows")) {
-            absolutePath = FilenameUtils.separatorsToUnix(absolutePath);
+    private void exportFullAndSnapshot(File output, String rf2FilePath, String fullFileName, String extensionEffectiveTime, RF2TableExportDAO rf2TableDAO, TableSchema tableSchema) throws IOException {
+        final Rf2FileWriter rf2FileWriter = new Rf2FileWriter();
+        final RF2TableResults fullResultSet = rf2TableDAO.selectAllOrdered(tableSchema);
+        final String currentSnapshotFileName = constructSnapshotFilename(fullFileName);
+        String sourcePath = SLASH + getSourcePath(rf2FilePath);
+
+        File outputRF2FullFolder = new File(output.getAbsoluteFile() + SLASH + FULL + sourcePath);
+        if (!outputRF2FullFolder.exists()) {
+            FileUtils.forceMkdir(outputRF2FullFolder); //create directory
         }
-        if (absolutePath.contains(TERMINOLOGY_SOURCE)) {
-            return absolutePath.substring(absolutePath.indexOf(TERMINOLOGY_SOURCE), absolutePath.lastIndexOf(SLASH));
-        } else if (absolutePath.contains(REFSET_SOURCE)) {
-            return absolutePath.substring(absolutePath.indexOf(REFSET_SOURCE), absolutePath.lastIndexOf(SLASH));
-        } else {
-            LOGGER.warn("No source file found.");
-            return "";
+        File outputRF2SnapshotFolder = new File(output.getAbsoluteFile() + SLASH + SNAPSHOT + sourcePath);
+        if (!outputRF2SnapshotFolder.exists()) {
+            FileUtils.forceMkdir(outputRF2SnapshotFolder); //create directory
+        }
+        try (OutputStream fullFileOutputStream = new FileOutputStream(outputRF2FullFolder + SLASH + fullFileName);
+             OutputStream snapshotFileOutputStream = new FileOutputStream(outputRF2SnapshotFolder + SLASH + currentSnapshotFileName)) {
+            rf2FileWriter.exportFullAndSnapshot(fullResultSet, tableSchema, extensionEffectiveTime, fullFileOutputStream, snapshotFileOutputStream);
+            LOGGER.debug("Completed processing full and snapshot files for {}", tableSchema.getTableName());
         }
     }
 
-    private InputStream getEquivalentInternationalFull(String extensionFilename, File internationalPackage, String internationalEffectiveTime) throws IOException {
+    private File getEquivalentInternationalFull(String extensionFilename, File internationalPackage, String internationalEffectiveTime) {
         String equivalentFullFile = getEquivalentInternationalFile(extensionFilename, internationalEffectiveTime);
         LOGGER.info("Equivalent full file {}", equivalentFullFile);
         List<File> files = new ArrayList<>();
         listFiles(internationalPackage.getAbsolutePath(), files);
-        File intFullFile = files.stream().filter(file -> file.isFile() && file.getName().equals(equivalentFullFile)).findFirst().orElse(null);
-        if (intFullFile != null) {
-            return new FileInputStream(intFullFile);
-        }
-        return null;
+        return files.stream().filter(file -> file.isFile() && file.getName().equals(equivalentFullFile)).findFirst().orElse(null);
     }
 
     private String getEquivalentInternationalFile(String extensionFilename, String internationalEffectiveTime) {
@@ -187,6 +175,49 @@ public class Rf2FileExportRunner {
         return equivalentBuilder.toString();
     }
 
+    private File createFolder(String folderName) throws IOException {
+        File folder = (new File(folderName));
+        if (folder.exists()) {
+            FileUtils.cleanDirectory(folder); //clean out directory
+            FileUtils.forceDelete(folder); //delete directory
+        }
+        FileUtils.forceMkdir(folder); //create directory
+        return folder;
+    }
+
+    private void cleanupTemporaryFolders(File inputDirectory, File outputDirectory) throws IOException {
+        if (inputDirectory != null) {
+            FileUtils.forceDelete(inputDirectory);
+        }
+        // Delete the folders inside the output
+        if (outputDirectory != null) {
+            File outputFull = new File(outputDirectory + SLASH + FULL);
+            if (outputFull.exists()) FileUtils.forceDelete(new File(outputDirectory + SLASH + FULL));
+            File outputSnapshot = new File(outputDirectory + SLASH + SNAPSHOT);
+            if (outputSnapshot.exists()) FileUtils.forceDelete(new File(outputDirectory + SLASH + SNAPSHOT));
+        }
+    }
+
+    private String getSourcePath(String absolutePath) {
+        if (System.getProperty("os.name").contains("Windows")) {
+            absolutePath = FilenameUtils.separatorsToUnix(absolutePath);
+        }
+        if (absolutePath.contains(TERMINOLOGY_SOURCE)) {
+            return absolutePath.substring(absolutePath.indexOf(TERMINOLOGY_SOURCE), absolutePath.lastIndexOf(SLASH));
+        } else if (absolutePath.contains(REFSET_SOURCE)) {
+            return absolutePath.substring(absolutePath.indexOf(REFSET_SOURCE), absolutePath.lastIndexOf(SLASH));
+        } else {
+            LOGGER.warn("No source file found.");
+            return "";
+        }
+    }
+
+    private static boolean isValidRF2FullFile(File thisFile) {
+        return !thisFile.isDirectory()
+                && thisFile.getName().endsWith(TXT_FILE_EXTENSION)
+                && (thisFile.getName().contains(FULL + FILE_NAME_SEPARATOR) || thisFile.getName().contains(FULL + DASH));
+    }
+
     private String constructSnapshotFilename(String fullFilename) {
         return fullFilename.replace(FULL + FILE_NAME_SEPARATOR, SNAPSHOT + FILE_NAME_SEPARATOR)
                 .replace( FULL + DASH, SNAPSHOT + DASH);
@@ -200,13 +231,15 @@ public class Rf2FileExportRunner {
         return packages.stream().filter(file -> file.isFile() && (!file.getName().equals(internationalPackage.getName()))).collect(Collectors.toSet());
     }
 
-    private void unzipPackage(File source, String destination) throws IOException {
+    private File unzipPackage(File source, String destination) throws IOException {
         LOGGER.info("Unzipping the package {}...", source.getName());
+        File unzippedFolder = new File(destination);
         try (ZipFile zipFile = new ZipFile(source)) {
-            zipFile.extractAll(destination);
+            zipFile.extractAll(unzippedFolder.getAbsolutePath());
         } catch (ZipException e) {
             throw new IOException("Unable to unzip the file " + source.getName());
         }
+        return unzippedFolder;
     }
 
     private void zipPackage(File outputDirectory, String zipFilename) throws IOException {

@@ -8,15 +8,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class Rf2FileWriter {
 
-	public void exportFullAndSnapshot(RF2TableResults tableResults, TableSchema schema, String targetEffectiveTime, OutputStream fullOutputStream, OutputStream snapshotOutputStream) throws SQLException, IOException {
+	public void exportFullAndSnapshot(RF2TableResults tableResults, TableSchema schema, String targetEffectiveTime, OutputStream fullOutputStream, OutputStream snapshotOutputStream) throws IOException {
 
 		try (BufferedWriter fullWriter = new BufferedWriter(new OutputStreamWriter(fullOutputStream, RF2Constants.UTF_8));
 			 BufferedWriter snapshotWriter = new BufferedWriter(new OutputStreamWriter(snapshotOutputStream, RF2Constants.UTF_8))) {
@@ -71,12 +68,10 @@ public class Rf2FileWriter {
 				// If moved to new member or passed target effectiveTime write any previous valid line
 				movedToNewMember = lastId != null && !lastId.equals(currentId);
 				passedTargetEffectiveTime = currentEffectiveTimeInt > targetEffectiveTimeInt;
-				if (movedToNewMember || passedTargetEffectiveTime) {
-					if (validLine != null) {
-						snapshotWriter.append(validLine);
-						snapshotWriter.append(RF2Constants.LINE_ENDING);
-						validLine = null;
-					}
+				if ((movedToNewMember || passedTargetEffectiveTime) && validLine != null) {
+					snapshotWriter.append(validLine);
+					snapshotWriter.append(RF2Constants.LINE_ENDING);
+					validLine = null;
 				}
 
 				// Store valid line if effectiveTime not exceeded
@@ -97,16 +92,16 @@ public class Rf2FileWriter {
 	}
 
 	private String generateHeader(List<Field> fields) {
-		StringBuilder producter = new StringBuilder();
+		StringBuilder builder = new StringBuilder();
 		boolean firstField = true;
 		for (Field field : fields) {
 			if (firstField) {
 				firstField = false;
 			} else {
-				producter.append(RF2Constants.COLUMN_SEPARATOR);
+				builder.append(RF2Constants.COLUMN_SEPARATOR);
 			}
-			producter.append(field.getName());
+			builder.append(field.getName());
 		}
-		return producter.toString();
+		return builder.toString();
 	}
 }
