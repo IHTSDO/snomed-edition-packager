@@ -1,0 +1,29 @@
+{
+  "readmeConfig": {
+    "filename": "Readme_en_{effectiveTime}.txt",
+    "endDate": "2024",
+    "header": "The SNOMED CT International Edition release is provided in UTF-8 encoded tab-delimited flat files which can be imported into any database or other software application.  SNOMED CT is not software.\n\nThe SNOMED CT files are designed as relational tables with each line in the file representing a row in the table. The first row of each table contains column headings. All other rows contain data.\n\nThe SNOMED CT International Edition release is delivered to IHTSDO Member National Centers and authorized Affiliate Licensees via Internet download.  \n\n© International Health Terminology Standards Development Organisation 2002-{readmeEndDate}.  All rights reserved.  SNOMED CT® was originally created by the College of American Pathologists.  \"SNOMED\" and \"SNOMED CT\" are registered trademarks of International Health Terminology Standards Development Organisation, trading as SNOMED International.\n\nSNOMED CT has been created by combining SNOMED RT and a computer based nomenclature and classification known as Clinical Terms Version 3, formerly known as Read Codes Version 3, which was created on behalf of the UK Department of Health and is Crown copyright.\n\nThis document forms part of the International Edition release of SNOMED CT® distributed by SNOMED International, which is subject to the SNOMED CT® Affiliate License, details of which may be found at  https://www.snomed.org/snomed-ct/get-snomed.\n\nDirectory listing:\n"
+  },
+  "releaseInformationConfig": {
+    "filename": "release_package_information.json",
+    "fields": {
+      "effectiveTime": null,
+      "previousPublishedPackage": "SnomedCT_InternationalRF2_PRODUCTION_20240601T120000Z.zip",
+      "licenceStatement": "© 2024 International Health Terminology Standards Development Organisation 2002-2024.  All rights reserved.  SNOMED CT® was originally created by the College of American Pathologists.  'SNOMED' and 'SNOMED CT' are registered trademarks of International Health Terminology Standards Development Organisation, trading as SNOMED International.  SNOMED CT has been created by combining SNOMED RT and a computer based nomenclature and classification known as Clinical Terms Version 3, formerly known as Read Codes Version 3, which was created on behalf of the UK Department of Health and is Crown copyright.  This document forms part of the International Edition release of SNOMED CT® distributed by SNOMED International, which is subject to the SNOMED CT® Affiliate License, details of which may be found at  https://www.snomed.org/snomed-ct/get-snomed.",
+      "languageRefsets": [
+        {
+          "id": "900000000000508004",
+          "term": "Great Britain English language reference set"
+        },
+        {
+          "id": "900000000000509007",
+          "term": "United States of America English language reference set"
+        }
+      ],
+      "packageComposition": {
+        "essentialComponents": {},
+        "optionalComponents": {}
+      }
+    }
+  }
+}

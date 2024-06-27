@@ -1,5 +1,6 @@
 package org.snomed.snomededitionpackager.rf2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -9,20 +10,22 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.ihtsdo.snomed.util.rf2.schema.TableSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.snomed.snomededitionpackager.util.PackageInformationGenerator;
+import org.snomed.snomededitionpackager.util.ReadmeGenerator;
 import org.snomed.snomededitionpackager.util.ReleasePackageUtils;
+import us.monoid.json.JSONException;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.snomed.snomededitionpackager.rf2.RF2Constants.*;
+
 public class Rf2FileExportRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Rf2FileExportRunner.class);
 
-    public final void generateEditionPackage(Set<File> packages) throws IOException {
+    public final void generateEditionPackage(File configFile, Set<File> packages) throws IOException, JSONException {
         if (packages.isEmpty()) throw new IllegalArgumentException("No release packages found.");
 
         for (File file : packages) {
@@ -47,7 +50,7 @@ public class Rf2FileExportRunner {
             outputDirectory = createFolder(OUTPUT_FOLDER);
 
             // Unzip international release
-            File unzippedInternationalFolder = unzipPackage(internationalPackage,inputDirectory.getAbsolutePath() + SLASH + INTERNATIONAL);
+            File unzippedInternationalFolder = unzipPackage(internationalPackage, inputDirectory.getAbsolutePath() + SLASH + INTERNATIONAL);
             List<String> internationalFilesUsedByExtension = new ArrayList<>();
 
             // Walk through all extension packages
@@ -74,24 +77,31 @@ public class Rf2FileExportRunner {
             copyMissingFilesFromInternationalPackage(outputDirectory, unzippedInternationalFolder, internationalFilesUsedByExtension, intEffectiveTime, extensionEffectiveTime, extensionNamespace, betaRelease);
 
             // Zip the new Edition package
-            String zipFilename = extensionPackages.size() == 1 ? extensionPackages.iterator().next().getName() : "Edition.zip";
-            zipPackage(outputDirectory, zipFilename);
+            String releasePackageFilename = extensionPackages.size() == 1 ? extensionPackages.iterator().next().getName() : "Edition.zip";
+            ZipFile releasePackage = zipPackage(outputDirectory, releasePackageFilename);
 
-            LOGGER.info("A new Edition package has been built completely. You can find it in {}", outputDirectory.getAbsolutePath());
+            // Add Readme and Release package information files
+            if (configFile != null) {
+                Map<String, Object> config = readConfigFile(configFile);
+                generateReadme(outputDirectory, config, extensionEffectiveTime, releasePackage, releasePackageFilename);
+                generateReleaseInformation(extensionEffectiveTime, outputDirectory, config, releasePackage, releasePackageFilename);
+            }
+
+            LOGGER.info("A new Edition package has been built completely. You can find it in {}", releasePackage.getFile().getAbsolutePath());
         } finally {
             cleanupTemporaryFolders(inputDirectory, outputDirectory);
         }
     }
 
     private void combineRF2File(File output, File extensionRf2File, File internationalFile, String internationalEffectiveTime, String extensionEffectiveTime, List<String> internationalFilesUsedByExtension) {
-        try (RF2TableExportDAO rf2TableDAO = new RF2TableExportDAOImpl()){
+        try (RF2TableExportDAO rf2TableDAO = new RF2TableExportDAOImpl()) {
             TableSchema tableSchema = rf2TableDAO.createTable(extensionRf2File.getName(), new FileInputStream(extensionRf2File));
 
             // Populate data from International Full
             File intFullFile = getEquivalentInternationalFull(extensionRf2File.getName(), internationalFile, internationalEffectiveTime);
             if (intFullFile != null) {
                 internationalFilesUsedByExtension.add(intFullFile.getName());
-                try (InputStream intFullStream =  new FileInputStream(intFullFile);){
+                try (InputStream intFullStream = new FileInputStream(intFullFile);) {
                     rf2TableDAO.appendData(tableSchema, intFullStream);
                 }
             } else {
@@ -220,7 +230,7 @@ public class Rf2FileExportRunner {
 
     private String constructSnapshotFilename(String fullFilename) {
         return fullFilename.replace(FULL + FILE_NAME_SEPARATOR, SNAPSHOT + FILE_NAME_SEPARATOR)
-                .replace( FULL + DASH, SNAPSHOT + DASH);
+                .replace(FULL + DASH, SNAPSHOT + DASH);
     }
 
     private File findInternationalPackage(Set<File> packages) {
@@ -242,15 +252,17 @@ public class Rf2FileExportRunner {
         return unzippedFolder;
     }
 
-    private void zipPackage(File outputDirectory, String zipFilename) throws IOException {
-        LOGGER.info("Zipping the new edition {}...",zipFilename);
-        try(ZipFile zipFile = new ZipFile(outputDirectory + SLASH + zipFilename)) {
+    private ZipFile zipPackage(File outputDirectory, String zipFilename) throws IOException {
+        LOGGER.info("Zipping the new edition {}...", zipFilename);
+        try (ZipFile zipFile = new ZipFile(outputDirectory + SLASH + zipFilename)) {
             ZipParameters parameters = new ZipParameters();
             parameters.setRootFolderNameInZip(zipFilename.replace(ZIP_FILE_EXTENSION, ""));
             zipFile.addFolder(new File(outputDirectory + SLASH + FULL), parameters);
             zipFile.addFolder(new File(outputDirectory + SLASH + SNAPSHOT), parameters);
+            return zipFile;
         }
     }
+
     private void listFiles(String directoryName, List<File> files) {
         File directory = new File(directoryName);
 
@@ -266,4 +278,49 @@ public class Rf2FileExportRunner {
             }
         }
     }
+
+    private Map<String, Object> readConfigFile(File configFile) throws IOException {
+        return new ObjectMapper().readValue(configFile, LinkedHashMap.class);
+    }
+
+    private static void generateReadme(File outputDirectory, Map<String, Object> config, String effectiveTime, ZipFile releasePackage, String zipFilename) throws IOException {
+        Map<String, Object> readmeConfig = (HashMap) config.get("readmeConfig");
+        Map<String, Object> releaseInformationConfig = (LinkedHashMap) config.get("releaseInformationConfig");
+
+        String readmeFilename = readmeConfig.get("filename").toString().replace("{effectiveTime}", effectiveTime);
+        String releaseInformationFilename = releaseInformationConfig.get("filename").toString();
+
+        String readmeFilePath = outputDirectory + SLASH + readmeFilename;
+        try (OutputStream readmeOutputStream = new FileOutputStream(readmeFilePath)) {
+            ReadmeGenerator.generate(readmeFilename, releaseInformationFilename, readmeConfig.get("header").toString(), readmeConfig.get("endDate").toString(), new java.util.zip.ZipFile(releasePackage.getFile()), readmeOutputStream);
+
+            ZipParameters parameters = new ZipParameters();
+            parameters.setRootFolderNameInZip(zipFilename.replace(ZIP_FILE_EXTENSION, ""));
+            releasePackage.addFile(new File(readmeFilePath), parameters);
+        } finally {
+            File readmeFile = new File(readmeFilePath);
+            if (readmeFile.exists()) {
+                FileUtils.forceDelete(readmeFile);
+            }
+        }
+    }
+
+    private static void generateReleaseInformation(String effectiveTime, File outputDirectory, Map<String, Object> config, ZipFile releasePackage, String zipFilename) throws IOException, JSONException {
+        Map<String, Object> releaseInformationConfig = (LinkedHashMap) config.get("releaseInformationConfig");
+
+        String releaseInformationFilePath = outputDirectory + SLASH + releaseInformationConfig.get("filename");
+        try (OutputStream releaseInformationOutputStream = new FileOutputStream(releaseInformationFilePath)) {
+            PackageInformationGenerator.generate(effectiveTime, (LinkedHashMap) releaseInformationConfig.get("fields"), releaseInformationOutputStream);
+
+            ZipParameters parameters = new ZipParameters();
+            parameters.setRootFolderNameInZip(zipFilename.replace(ZIP_FILE_EXTENSION, ""));
+            releasePackage.addFile(new File(releaseInformationFilePath), parameters);
+        } finally {
+            File releaseInformationFile = new File(releaseInformationFilePath);
+            if (releaseInformationFile.exists()) {
+                FileUtils.forceDelete(releaseInformationFile);
+            }
+        }
+    }
+
 }

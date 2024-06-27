@@ -25,5 +25,6 @@ public class RF2Constants {
 	public static final String INT_NAMESPACE = "_INT_";
 	public static final String LANGUAGE_FILE_PATTERN = "^x?der2_cRefset_.*Language.*";
 	public static final String INT = "INT";
+	public static final String EFFECTIVE_TIME = "effectiveTime";
 
 }
