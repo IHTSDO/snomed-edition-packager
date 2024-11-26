@@ -62,9 +62,7 @@ public class Rf2FileExportRunner {
                 for (File thisFile : files) {
                     if (thisFile.isFile() && thisFile.getName().equals("release_package_information.json")) {
                         releasePackageInformationFile = thisFile;
-                        continue;
-                    }
-                    if (!isValidRF2FullFile(thisFile)) {
+                    } else if (!isValidRF2FullFile(thisFile)) {
                         continue;
                     }
                     if (extensionNamespace == null) {
@@ -79,7 +77,7 @@ public class Rf2FileExportRunner {
             copyMissingFilesFromInternationalPackage(outputDirectory, unzippedInternationalFolder, internationalFilesUsedByExtension, intEffectiveTime, extensionEffectiveTime, extensionNamespace, betaRelease);
 
             // Zip the new Edition package
-            String releasePackageFilename = extensionPackages.size() == 1 ? extensionPackages.iterator().next().getName() : "Edition.zip";
+            String releasePackageFilename = getEditionPackageFileName(extensionPackages);
             ZipFile releasePackage = zipPackage(outputDirectory, releasePackageFilename);
 
             generateReadmeAndReleaseInforFile(configFile, outputDirectory, extensionEffectiveTime, releasePackage, releasePackageFilename, releasePackageInformationFile);
@@ -87,6 +85,10 @@ public class Rf2FileExportRunner {
         } finally {
             cleanupTemporaryFolders(inputDirectory, outputDirectory);
         }
+    }
+
+    private String getEditionPackageFileName(Set<File> extensionPackages) {
+        return extensionPackages.size() == 1 ? extensionPackages.iterator().next().getName() : "Edition.zip";
     }
 
     private void validateInputPackages(Set<File> packages) {
