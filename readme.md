@@ -26,3 +26,4 @@ For example:
 Note: 
 - You can run the command `package` without any parameters if the "config.json" file and all zip files are in the same directory.
 - The sample of config.json can be found here: https://github.com/IHTSDO/snomed-edition-packager/blob/develop/src/main/resources/config.json
+- In the config.json file, if there is no configuration for Release Package Information JSON file, then the edition package will take the existing one from extension.

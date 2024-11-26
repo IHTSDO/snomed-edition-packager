@@ -7,8 +7,6 @@ import org.snomed.snomededitionpackager.rf2.Rf2FileExportRunner;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
-import org.springframework.util.StringUtils;
-import us.monoid.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +20,7 @@ public class PackageCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(PackageCommand.class);
 
     @ShellMethod(key = "package", value = "Create package by joining/merging given packages.")
-    public void createPackage(@ShellOption(defaultValue = "*") String... arguments) throws IOException, JSONException {
+    public void createPackage(@ShellOption(defaultValue = "*") String... arguments) throws IOException {
         LOGGER.info("Running 'package' with argument '{}'", (arguments.length != 0 ? String.join(", ", arguments) : ""));
         Set<String> filenames = getFilenames(arguments);
         Set<File> files = new HashSet<>();
