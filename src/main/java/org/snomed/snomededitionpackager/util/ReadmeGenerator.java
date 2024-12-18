@@ -3,6 +3,7 @@ package org.snomed.snomededitionpackager.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.rf2.RF2Constants;
+import org.springframework.util.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class ReadmeGenerator {
             Map<String, String> map = new TreeMap<>();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
+                if (StringUtils.hasLength(releaseInformationFilename) && entry.getName().endsWith(releaseInformationFilename)) continue;
                 map.put(entry.getName(), entry.getName());
             }
             int index = 0;
