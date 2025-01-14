@@ -7,6 +7,10 @@ import net.lingala.zip4j.model.ZipParameters;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.ihtsdo.otf.snomedboot.ReleaseImportException;
+import org.ihtsdo.otf.snomedboot.ReleaseImporter;
+import org.ihtsdo.otf.snomedboot.factory.ImpotentComponentFactory;
+import org.ihtsdo.otf.snomedboot.factory.LoadingProfile;
 import org.ihtsdo.snomed.util.rf2.schema.TableSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +28,18 @@ public class Rf2FileExportRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Rf2FileExportRunner.class);
 
-    private record IdAndTerm(String id, String term) {
-    }
+    private static final String MODULE_DEPENDENCY_REFSET = "900000000000534007";
 
-    public final void generateEditionPackage(File configFile, Set<File> packages) throws IOException {
+    private static final String FILENAME_FILED = "filename";
+
+    private static final LoadingProfile MODULE_DEPENDENCY_REFSET_LOADING_PROFILE = new LoadingProfile()
+            .withRefsets(MODULE_DEPENDENCY_REFSET)
+            .withIncludedReferenceSetFilenamePattern(".*ModuleDependency.*")
+            .withoutInactiveRefsetMembers()
+            .withJustRefsets();
+
+
+    public final void generateEditionPackage(File configFile, Set<File> packages) throws IOException, ReleaseImportException {
         validateInputPackages(packages);
 
         final File internationalPackage = findInternationalPackage(packages);
@@ -57,6 +69,8 @@ public class Rf2FileExportRunner {
                     extensionEffectiveTime = ReleasePackageUtils.getReleaseDateFromReleasePackage(file.getName());
                 }
                 File unzippedExtensionFolder = unzipPackage(file, inputDirectory.getAbsolutePath() + SLASH + EXTENSION + SLASH + file.getName());
+                validateModuleDependency(unzippedExtensionFolder, intEffectiveTime);
+
                 List<File> files = new ArrayList<>();
                 listFiles(unzippedExtensionFolder.getAbsolutePath(), files);
                 for (File thisFile : files) {
@@ -84,6 +98,14 @@ public class Rf2FileExportRunner {
             LOGGER.info("A new Edition package has been built completely. You can find it in {}", releasePackage.getFile().getAbsolutePath());
         } finally {
             cleanupTemporaryFolders(inputDirectory, outputDirectory);
+        }
+    }
+
+    private void validateModuleDependency(File unzippedExtensionFolder, String intEffectiveTime) throws ReleaseImportException {
+        final MDRSFactory mdrsFactory = new MDRSFactory();
+        new ReleaseImporter().loadSnapshotReleaseFiles(unzippedExtensionFolder.getAbsolutePath(), MODULE_DEPENDENCY_REFSET_LOADING_PROFILE, mdrsFactory, false);
+        if (!mdrsFactory.getLatestDependencyEffectiveTime().equals(intEffectiveTime)) {
+            throw new IllegalArgumentException(String.format("The Edition requires %s for the dependant package but found %s", mdrsFactory.getLatestDependencyEffectiveTime(), intEffectiveTime));
         }
     }
 
@@ -301,7 +323,7 @@ public class Rf2FileExportRunner {
 
     private void generateReadme(File outputDirectory, Map<String, Object> config, String effectiveTime, ZipFile releasePackage, String zipFilename, String releaseInforFilename) throws IOException {
         Map<String, Object> readmeConfig = (HashMap) config.get("readmeConfig");
-        String readmeFilename = readmeConfig.get("filename").toString().replace("{effectiveTime}", effectiveTime);
+        String readmeFilename = readmeConfig.get(FILENAME_FILED).toString().replace("{effectiveTime}", effectiveTime);
 
         String readmeFilePath = outputDirectory + SLASH + readmeFilename;
         try (OutputStream readmeOutputStream = new FileOutputStream(readmeFilePath)) {
@@ -321,14 +343,14 @@ public class Rf2FileExportRunner {
     private String generateReleaseInformation(String effectiveTime, File outputDirectory, Map<String, Object> config, ZipFile releasePackage, String zipFilename, File releaseInforFile) throws IOException {
         Map<String, Object> releaseInformationConfig = (LinkedHashMap) config.get("releaseInformationConfig");
         if (releaseInformationConfig != null && !releaseInformationConfig.isEmpty()) {
-            String releaseInformationFilePath = outputDirectory + SLASH + releaseInformationConfig.get("filename");
+            String releaseInformationFilePath = outputDirectory + SLASH + releaseInformationConfig.get(FILENAME_FILED);
             try (OutputStream releaseInformationOutputStream = new FileOutputStream(releaseInformationFilePath)) {
                 Map fields = (LinkedHashMap) releaseInformationConfig.get("fields");
                 PackageInformationGenerator.generate(effectiveTime, fields, releaseInformationOutputStream);
                 ZipParameters parameters = new ZipParameters();
                 parameters.setRootFolderNameInZip(zipFilename.replace(ZIP_FILE_EXTENSION, ""));
                 releasePackage.addFile(new File(releaseInformationFilePath), parameters);
-                return releaseInformationConfig.get("filename").toString();
+                return releaseInformationConfig.get(FILENAME_FILED).toString();
             } finally {
                 File releaseInformationFile = new File(releaseInformationFilePath);
                 if (releaseInformationFile.exists()) {
@@ -343,6 +365,24 @@ public class Rf2FileExportRunner {
         } else {
             LOGGER.info("The release information file could not be found in the extension package or configured yet.");
             return null;
+        }
+    }
+
+    private class MDRSFactory extends ImpotentComponentFactory {
+        private String latestDependencyEffectiveTime;
+
+        @Override
+        public void newReferenceSetMemberState(String[] fieldNames, String id, String effectiveTime, String active, String moduleId, String refsetId, String referencedComponentId, String... otherValues) {
+            synchronized (this) {
+                if ("1".equals(active) && MODULE_DEPENDENCY_REFSET.equals(refsetId) && Arrays.asList(org.ihtsdo.otf.RF2Constants.INTERNATIONAL_MODULES).contains(referencedComponentId)
+                        && (latestDependencyEffectiveTime == null || Integer.parseInt(latestDependencyEffectiveTime) < Integer.parseInt(otherValues[1]))) {
+                    latestDependencyEffectiveTime = otherValues[1];
+                }
+            }
+        }
+
+        public String getLatestDependencyEffectiveTime() {
+            return latestDependencyEffectiveTime;
         }
     }
 }

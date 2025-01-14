@@ -1,5 +1,6 @@
 package org.snomed.snomededitionpackager;
 
+import org.ihtsdo.otf.snomedboot.ReleaseImportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.rf2.RF2Constants;
@@ -20,7 +21,7 @@ public class PackageCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(PackageCommand.class);
 
     @ShellMethod(key = "package", value = "Create package by joining/merging given packages.")
-    public void createPackage(@ShellOption(defaultValue = "*") String... arguments) throws IOException {
+    public void createPackage(@ShellOption(defaultValue = "*") String... arguments) {
         LOGGER.info("Running 'package' with argument '{}'", (arguments.length != 0 ? String.join(", ", arguments) : ""));
         Set<String> filenames = getFilenames(arguments);
         Set<File> files = new HashSet<>();
@@ -28,7 +29,11 @@ public class PackageCommand {
         File configFile = getConfigFile(arguments);
 
         Rf2FileExportRunner exportRunner = new Rf2FileExportRunner();
-        exportRunner.generateEditionPackage(configFile, files);
+        try {
+            exportRunner.generateEditionPackage(configFile, files);
+        } catch (IOException | ReleaseImportException e) {
+            LOGGER.error("Failed to generate the new edition. Error: {}", e.getMessage());
+        }
         System.exit(0);
     }
 

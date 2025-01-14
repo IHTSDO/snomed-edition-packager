@@ -24,6 +24,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.snomed.otf</groupId>
+            <artifactId>snomed-boot</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.ihtsdo.snomed.util</groupId>
             <artifactId>snomed-utilities</artifactId>
         </dependency>
