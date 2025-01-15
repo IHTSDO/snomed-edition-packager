@@ -1,6 +1,5 @@
 package org.snomed.snomededitionpackager;
 
-import org.ihtsdo.otf.snomedboot.ReleaseImportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.rf2.RF2Constants;
@@ -10,7 +9,6 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,10 +29,9 @@ public class PackageCommand {
         Rf2FileExportRunner exportRunner = new Rf2FileExportRunner();
         try {
             exportRunner.generateEditionPackage(configFile, files);
-        } catch (IOException | ReleaseImportException e) {
+        } catch (Exception e) {
             LOGGER.error("Failed to generate the new edition. Error: {}", e.getMessage());
         }
-        System.exit(0);
     }
 
     private Set<String> getFilenames(String... arguments) {
