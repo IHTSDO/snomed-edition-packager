@@ -5,6 +5,11 @@ It validates module dependencies, generates fresh **Full** and **Snapshot** RF2 
 
 > In short: drop your source `.zip` files in a folder, run `package`, and get a brand-new edition package out the other side.
 
+> ⚠️ **IMPORTANT:**
+> The quality and integrity of RF2 packages generated using this tool cannot be guaranteed by SNOMED International.
+> It is, therefore, both required and presumed that users of this tool will independently verify and validate any
+> generated RF2 packages before use.
+
 ---
 
 ## 1  High-Level Architecture
