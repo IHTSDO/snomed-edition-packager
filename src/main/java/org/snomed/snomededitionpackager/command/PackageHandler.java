@@ -14,14 +14,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class CombineHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CombineHandler.class);
+public class PackageHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PackageHandler.class);
 	private static final String OUTPUT = "output";
 
 	private final ImportService importService;
 	private final ExportService exportService;
 
-	public CombineHandler(ImportService importService, ExportService exportService) {
+	public PackageHandler(ImportService importService, ExportService exportService) {
 		this.importService = importService;
 		this.exportService = exportService;
 	}

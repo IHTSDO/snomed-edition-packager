@@ -11,15 +11,15 @@ import org.springframework.shell.standard.ShellOption;
 import java.util.*;
 
 @ShellComponent
-public class CombineCommand {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CombineCommand.class);
-	private final CombineHandler combineHandler;
+public class PackageCommand {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PackageCommand.class);
+	private final PackageHandler packageHandler;
 
-	public CombineCommand(CombineHandler combineHandler) {
-		this.combineHandler = combineHandler;
+	public PackageCommand(PackageHandler packageHandler) {
+		this.packageHandler = packageHandler;
 	}
 
-	@ShellMethod(key = "combine", value = "Create package by joining/merging given packages.")
+	@ShellMethod(key = "package", value = "Create package by joining/merging given packages.")
 	public void createPackage(
 			@ShellOption(defaultValue = "*") String shortName,
 			@ShellOption(defaultValue = "*") String input,
@@ -32,7 +32,7 @@ public class CombineCommand {
 	) {
 		long start = System.currentTimeMillis();
 		LOGGER.info("Creating package... shortName={} input={} output={} effectiveTime={} full={} releasePackageInformation={} sort={} readMe={}", shortName, input, output, effectiveTime, full, releasePackageInformation, sort, readMe);
-		boolean success = combineHandler.combine(new Arguments(Command.PACKAGE,
+		boolean success = packageHandler.combine(new Arguments(Command.PACKAGE,
 				Map.of("shortName", shortName,
 						"input", input,
 						"output", output,
