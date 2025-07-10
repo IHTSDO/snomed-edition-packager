@@ -28,10 +28,11 @@ public class PackageCommand {
 			@ShellOption(defaultValue = "false") String full,
 			@ShellOption(defaultValue = "*") String releasePackageInformation,
 			@ShellOption(defaultValue = "false") String sort,
-			@ShellOption(defaultValue = "*") String readMe
+			@ShellOption(defaultValue = "*") String readMe,
+			@ShellOption(defaultValue = "false") String report
 	) {
 		long start = System.currentTimeMillis();
-		LOGGER.info("Creating package... shortName={} input={} output={} effectiveTime={} full={} releasePackageInformation={} sort={} readMe={}", shortName, input, output, effectiveTime, full, releasePackageInformation, sort, readMe);
+		LOGGER.info("Creating package... shortName={} input={} output={} effectiveTime={} full={} releasePackageInformation={} sort={} readMe={} report={}", shortName, input, output, effectiveTime, full, releasePackageInformation, sort, readMe, report);
 		boolean success = packageHandler.combine(new Arguments(Command.PACKAGE,
 				Map.of("shortName", shortName,
 						"input", input,
@@ -40,7 +41,8 @@ public class PackageCommand {
 						"full", full,
 						"releasePackageInformation", releasePackageInformation,
 						"sort", sort,
-						"readMe", readMe
+						"readMe", readMe,
+						"report", report
 				))
 		);
 

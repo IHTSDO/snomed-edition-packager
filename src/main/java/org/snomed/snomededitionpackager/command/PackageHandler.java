@@ -20,10 +20,13 @@ public class PackageHandler {
 
 	private final ImportService importService;
 	private final ExportService exportService;
+	private final ReportCommand reportCommand;
+	private String rf2Package;
 
-	public PackageHandler(ImportService importService, ExportService exportService) {
+	public PackageHandler(ImportService importService, ExportService exportService, ReportCommand reportCommand) {
 		this.importService = importService;
 		this.exportService = exportService;
+		this.reportCommand = reportCommand;
 	}
 
 	public boolean combine(Arguments arguments) {
@@ -46,6 +49,11 @@ public class PackageHandler {
 			return false;
 		}
 
+		// Optional follow-up
+		if ("true".equals(arguments.getArg("report"))) {
+			reportCommand.createReport(String.format("%s,%s.zip", arguments.getArg("input"), this.rf2Package));
+		}
+
 		return true;
 	}
 
@@ -66,16 +74,15 @@ public class PackageHandler {
 	private boolean exportPackage(Arguments arguments) {
 		LOGGER.info("Export starting...");
 		long start = System.currentTimeMillis();
-
 		createOutputDirectory();
-		String rf2Package = "./output/" + (arguments.isWildcard(OUTPUT) ? String.valueOf(System.currentTimeMillis()) : arguments.getArg(OUTPUT));
+		this.rf2Package = "./output/" + (arguments.isWildcard(OUTPUT) ? String.valueOf(System.currentTimeMillis()) : arguments.getArg(OUTPUT));
 		String shortName = arguments.getArg("shortName", "XX");
 		String effectiveTime = arguments.getArg("effectiveTime", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 		String releasePackageInformation = arguments.getArg("releasePackageInformation");
 		String full = arguments.getArg("full");
 		String sort = arguments.getArg("sort");
 		String readMe = arguments.getArg("readMe");
-		ExportConfiguration exportConfiguration = new ExportConfiguration(rf2Package, shortName, effectiveTime, releasePackageInformation, full, sort, readMe);
+		ExportConfiguration exportConfiguration = new ExportConfiguration(this.rf2Package, shortName, effectiveTime, releasePackageInformation, full, sort, readMe);
 		boolean success = exportService.export(exportConfiguration);
 
 		long end = System.currentTimeMillis();
