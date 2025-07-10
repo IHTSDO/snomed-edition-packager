@@ -64,6 +64,10 @@
             <artifactId>spring-shell-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.ihtsdo.otf.common</groupId>
+            <artifactId>resource-manager</artifactId>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

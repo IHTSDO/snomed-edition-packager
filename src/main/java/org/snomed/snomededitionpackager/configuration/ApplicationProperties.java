@@ -15,6 +15,10 @@ public class ApplicationProperties {
 		return appName;
 	}
 
+	public String getAppEnvironment() {
+		return appEnvironment;
+	}
+
 	public void setAppEnvironment(String appEnvironment) {
 		this.appEnvironment = appEnvironment;
 	}

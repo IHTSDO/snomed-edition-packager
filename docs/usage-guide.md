@@ -23,5 +23,20 @@ See below for an example combining all of the above options.
 
 `package --shortName ABC --input /Users/example/Desktop/edition.zip /Users/example/Desktop/extension.zip --output MyCombinedPackage --effectiveTime 20250101 --full true --releasePackageInformation /Users/example/Desktop/ReleasePackageInformation.json --sort true --readMe /Users/example/Desktop/readMe.txt`
 
+## Report
+
+The `report` command will analyse given RF2 packages. This is useful to verifying the output of the `package` command.
+The table below details the available parameters.
+
+| Parameter | Type    | Default | Example                                                                 | Meaning                                                                                                                                                                                                                                     | 
+|-----------|---------|---------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| input     | Path(s) | *       | /Users/example/Desktop/edition.zip /Users/example/Desktop/extension.zip | The value of this space-separated parameter will determine which locally-stored RF2 packages to analyse. If no value is supplied (i.e. defaulting to `*`), then any RF2 packages in the current working directory will be analysed instead. |
+
+See below for an example combining all of the above options.
+
+`report --input /Users/example/Desktop/edition.zip /Users/example/Desktop/extension.zip`
+
+Please note, this command currently requires a Google service account json file (`secure/google-api-secret.json`).
+
 ---
 Last updated 25/07/2025

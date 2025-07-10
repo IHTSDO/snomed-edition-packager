@@ -6,6 +6,7 @@ import java.util.*;
 
 public class Arguments {
 	private static final String WILDCARD = "*";
+	private static final String COMMA = ",";
 
 	private final Command command;
 	private final Map<String, String> args;
@@ -29,6 +30,23 @@ public class Arguments {
 		}
 
 		return args.get(key);
+	}
+
+	public List<String> getArgList(String key) {
+		return getArgList(key, COMMA);
+	}
+
+	public List<String> getArgList(String key, String separator) {
+		if (args == null || args.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		String value = args.get(key);
+		if (value == null) {
+			return Collections.emptyList();
+		}
+
+		return Arrays.asList(value.split(separator));
 	}
 
 	public String getArg(String key, String fallback) {

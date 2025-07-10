@@ -29,3 +29,6 @@ target/
 !**/src/test/**/target/
 application*.properties
 .idea
+
+/secure/*.json
+/secure/*.pem
