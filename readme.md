@@ -53,10 +53,15 @@ Key points:
 ## 2  Feature Highlights
 
 * **Spring Shell CLI** – `PackageCommand` exposes a single, ergonomic `package` command.
-* **Module Dependency Validation** – guarantees your extension is compatible with the chosen international baseline (see `Rf2FileExportRunner.MDRSFactory`).
+* **Modular Import & Export Pipeline** – `ImportService` and `ExportService` orchestrate pluggable writers/readers for each RF2 component type.
+* **In-Memory DataStore** – caches Concepts, Descriptions, Relationships, Axioms, RefSet Members, Identifiers and more for ultra-fast processing and optional natural ordering.
+* **Wildcard & Comma-Separated Arguments** – flexible CLI parsing via the new `Arguments` domain object (`*` indicates “use sensible default”).
+* **Automatic Empty File Generation** – `WriteEmptyFiles` creates placeholder RF2 tables for reference sets that otherwise have no content, ensuring downstream validators stay happy.
+* **Comprehensive RF2 Coverage** – writers exist for Concepts, Descriptions, Text Definitions, (Stated / Concrete) Relationships, Axioms, Reference-set Members and Identifiers.
+* **Module Dependency Validation** – guarantees your extension is compatible with the chosen International baseline (see `MDRSFactory`).
 * **Automatic README Generation** – configurable via `config.json` and powered by `ReadmeGenerator`.
-* **Release-Package Metadata** – creates `release_package_information.json` with effectiveTime, language ref-sets, licence statement, etc.
-* **Full & Snapshot Derivation** – deterministic ordering of records thanks to `RF2TableExportDAO` utilities.
+* **Release-Package Metadata** – builds `release_package_information.json` with effectiveTime, licence statement, language ref-sets, etc.
+* **Deterministic Full & Snapshot Derivation** – optional natural ordering across all component files when `--sort true` is supplied.
 * **Beta Release Support** – recognises `BETA_` prefixes and preserves them in the final artefact.
 * **Zip4j Integration** – faster and more reliable than the standard JDK `java.util.zip`.
 * **Structured Logging** – SLF4J + Logback configuration in `src/main/resources/logback.xml`.
@@ -65,22 +70,32 @@ Key points:
 
 ## 3  Project Layout
 
-```
+```text
 src/
   main/
     java/org/snomed/snomededitionpackager
-      key/          ← RF2 component key helpers
-      rf2/          ← Merge engine & RF2 utilities
-      util/         ← README & package-info generators
-    resources/      ← `config.json`, Logback, etc.
-  test/              ← JUnit & Spring Shell tests
-  docs/              ← Usage guide & additional docs
+      command/         ← Spring Shell adapter (PackageCommand, PackageHandler)
+      configuration/   ← Spring `@Configuration` classes & beans
+      domain/
+        arguments/     ← CLI argument parsing helpers
+        datastore/     ← In-memory DataStore
+        importing/     ← Unzip & load packages into memory
+        exporting/     ← Writers & zip assembly logic
+        rf2/           ← RF2 component domain models
+      # (legacy) rf2/  ← Backwards-compatible merge utilities (to be refactored away)
+    resources/         ← `config.json`, Logback, etc.
+  test/                ← JUnit & Spring Shell tests
+  docs/                ← Usage guide & additional docs
 ```
 
 Important classes:
-* `Main.java`   – Spring Boot entry-point.
-* `PackageCommand.java`   – CLI facade.
-* `Rf2FileExportRunner.java`   – heart of the merge process.
+* `Main.java`              – Spring Boot entry-point.
+* `PackageCommand.java`    – CLI facade.
+* `PackageHandler.java`    – Orchestrates import → export pipeline.
+* `ImportService.java`     – Loads source packages into the `DataStore`.
+* `ExportService.java`     – Writes new Full & Snapshot tables and assembles the zip.
+* `DataStore.java`         – In-memory cache and sorting logic.
+* `FileNameService.java`   – Centralised RF2 filename conventions.
 
 ---
 
@@ -129,14 +144,6 @@ The resulting **Edition.zip** can be found in the current directory when the pro
 * Ensure you allocate sufficient heap (`-Xmx`).  Out-of-memory errors are the most common issue when handling very large RF2 tables.
 * Temporary folders `INPUT/` and `OUTPUT/` are created in the working directory and deleted automatically; if the process terminates abnormally you may delete them manually.
 * Increase log verbosity with `--logging.level.org.snomed=DEBUG` if you need deeper insight.
-
----
-
-## 6  Contributing & License
-
-* Pull requests are welcome – please follow conventional commit messages and add/maintain unit tests.
-* Code style: Google Java Format (run `mvn fmt:format` before committing).
-* This project is licensed under the terms of the **Apache License 2.0** – see [`LICENSE.md`](LICENSE.md).
 
 ---
 
