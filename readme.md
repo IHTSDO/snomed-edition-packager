@@ -22,6 +22,7 @@ flowchart TD
     Engine -->|Generate| NewRF2["Full & Snapshot tables"]
     SEP -->|Write| OutZip["Edition Package (.zip)"]
     SEP -->|Compose| Extras["README  +  release_package_information.json"]
+    SEP -->|Report| GoogleSheets["Google Sheets Reports"]
     SEP -->|Logback| Console["Console / Logs"]
 ```
 
@@ -52,10 +53,11 @@ Key points:
 
 ## 2  Feature Highlights
 
-* **Spring Shell CLI** – `PackageCommand` exposes a single, ergonomic `package` command.
+* **Spring Shell CLI** – `PackageCommand` exposes a single, ergonomic `package` command with comprehensive options.
+* **Reporting & Analysis** – `ReportCommand` generates detailed Google Sheets reports analyzing RF2 package contents.
 * **Modular Import & Export Pipeline** – `ImportService` and `ExportService` orchestrate pluggable writers/readers for each RF2 component type.
 * **In-Memory DataStore** – caches Concepts, Descriptions, Relationships, Axioms, RefSet Members, Identifiers and more for ultra-fast processing and optional natural ordering.
-* **Wildcard & Comma-Separated Arguments** – flexible CLI parsing via the new `Arguments` domain object (`*` indicates “use sensible default”).
+* **Wildcard & Comma-Separated Arguments** – flexible CLI parsing via the new `Arguments` domain object (`*` indicates "use sensible default").
 * **Automatic Empty File Generation** – `WriteEmptyFiles` creates placeholder RF2 tables for reference sets that otherwise have no content, ensuring downstream validators stay happy.
 * **Comprehensive RF2 Coverage** – writers exist for Concepts, Descriptions, Text Definitions, (Stated / Concrete) Relationships, Axioms, Reference-set Members and Identifiers.
 * **Module Dependency Validation** – guarantees your extension is compatible with the chosen International baseline (see `MDRSFactory`).
@@ -63,6 +65,7 @@ Key points:
 * **Release-Package Metadata** – builds `release_package_information.json` with effectiveTime, licence statement, language ref-sets, etc.
 * **Deterministic Full & Snapshot Derivation** – optional natural ordering across all component files when `--sort true` is supplied.
 * **Beta Release Support** – recognises `BETA_` prefixes and preserves them in the final artefact.
+* **Google Sheets Integration** – produces detailed reports with multiple tabs and CSV data export for package analysis.
 * **Zip4j Integration** – faster and more reliable than the standard JDK `java.util.zip`.
 * **Structured Logging** – SLF4J + Logback configuration in `src/main/resources/logback.xml`.
 
@@ -74,26 +77,30 @@ Key points:
 src/
   main/
     java/org/snomed/snomededitionpackager
-      command/         ← Spring Shell adapter (PackageCommand, PackageHandler)
+      command/         ← Spring Shell adapter (PackageCommand, ReportCommand, Handlers)
       configuration/   ← Spring `@Configuration` classes & beans
       domain/
         arguments/     ← CLI argument parsing helpers
         datastore/     ← In-memory DataStore
         importing/     ← Unzip & load packages into memory
         exporting/     ← Writers & zip assembly logic
+        reporting/     ← Google Sheets report generation
         rf2/           ← RF2 component domain models
       # (legacy) rf2/  ← Backwards-compatible merge utilities (to be refactored away)
-    resources/         ← `config.json`, Logback, etc.
+    resources/         ← `application.properties`, Logback, etc.
   test/                ← JUnit & Spring Shell tests
   docs/                ← Usage guide & additional docs
 ```
 
 Important classes:
 * `Main.java`              – Spring Boot entry-point.
-* `PackageCommand.java`    – CLI facade.
+* `PackageCommand.java`    – CLI facade for packaging operations.
+* `ReportCommand.java`     – CLI facade for report generation.
 * `PackageHandler.java`    – Orchestrates import → export pipeline.
+* `ReportHandler.java`     – Orchestrates RF2 package analysis and reporting.
 * `ImportService.java`     – Loads source packages into the `DataStore`.
 * `ExportService.java`     – Writes new Full & Snapshot tables and assembles the zip.
+* `ReportingService.java`  – Manages Google Sheets report creation and data writing.
 * `DataStore.java`         – In-memory cache and sorting logic.
 * `FileNameService.java`   – Centralised RF2 filename conventions.
 
@@ -106,6 +113,7 @@ Important classes:
 1. **JDK 17** (matching the parent BOM).
 2. **Maven 3.8+** (wrapper provided → `./mvnw`).
 3. ≥ **8 GB RAM** (the merge process is memory intensive – 14 GB recommended for large editions).
+4. **Google Sheets API access** (optional, for report generation features).
 
 ### 4.2  Clone & Build
 
@@ -119,6 +127,13 @@ cd snomed-edition-packager
 
 ### 4.3  Configuration (Optional)
 
+#### Application Properties
+Modify `src/main/resources/application.properties` to configure:
+- **Logging levels** – `logging.level.org.snomed.snomededitionpackager=TRACE`
+- **Environment settings** – `app.environment=local`
+- **Spring Shell history** – `spring.shell.history.enabled=false`
+
+#### Package Configuration
 If you need a customised README or release metadata, create/modify a `config.json` file – a reference example lives under `src/main/resources/config.json`.
 
 ### 4.4  Run
@@ -130,20 +145,70 @@ java -Xms4g -Xmx14g \
 
 Once the Spring Shell prompt appears, execute one of the following:
 
+---
+
+## 5  Commands & Usage
+
+### 5.1  Package Command
+
+Creates a consolidated SNOMED CT Edition by merging input packages.
+
+```bash
+package [options]
+```
+
+**Options:**
+- `--short-name` – Short name for the edition (default: `*` for auto-detection)
+- `--input` – Input packages (default: `*` for all .zip files in current directory)  
+- `--output` – Output directory (default: `*` for current directory)
+- `--effective-time` – Effective time for the release (default: `*` for auto-detection)
+- `--full` – Generate full RF2 files (default: `false`)
+- `--release-package-information` – Include release package information (default: `*`)
+- `--sort` – Sort output files naturally (default: `false`)
+- `--read-me` – Generate README file (default: `*`)
+- `--report` – Generate report during packaging (default: `false`)
+
+**Examples:**
 ```bash
 package *                                      # Merge all .zip + config.json in working dir
 package SnomedCT_InternationalRF2_*.zip MyExt.zip config.json
+package --sort true --full true --report true  # With sorting, full files, and reporting
 ```
 
-The resulting **Edition.zip** can be found in the current directory when the process completes.
+### 5.2  Report Command
+
+Generates detailed Google Sheets reports analyzing RF2 package contents.
+
+```bash
+report [--input packages]
+```
+
+**Options:**
+- `--input` – Input packages to analyze (default: `*` for all .zip files in current directory)
+
+**Examples:**
+```bash
+report *                                       # Analyze all .zip files in current directory
+report SnomedCT_InternationalRF2_*.zip MyExt.zip  # Analyze specific packages
+```
+
+**Report Features:**
+- **Multi-tab Google Sheets** – One tab per analyzed package
+- **File Analysis** – Lists all RF2 files with type classification (Full/Snapshot)
+- **Line Counts** – Shows the number of lines in each RF2 file
+- **CSV Export** – Data formatted for easy analysis and sharing
+
+The resulting **Edition.zip** (for package command) or **Google Sheets report** (for report command) can be found in the current directory when the process completes.
 
 ---
 
-## 5  Performance & Troubleshooting
+## 6  Performance & Troubleshooting
 
 * Ensure you allocate sufficient heap (`-Xmx`).  Out-of-memory errors are the most common issue when handling very large RF2 tables.
 * Temporary folders `INPUT/` and `OUTPUT/` are created in the working directory and deleted automatically; if the process terminates abnormally you may delete them manually.
 * Increase log verbosity with `--logging.level.org.snomed=DEBUG` if you need deeper insight.
+* For Google Sheets reporting, ensure proper API credentials are configured in your environment.
+* Report generation requires internet connectivity to access Google Sheets API.
 
 ---
 
