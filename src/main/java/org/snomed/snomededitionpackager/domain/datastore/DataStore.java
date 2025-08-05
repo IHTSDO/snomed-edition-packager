@@ -305,7 +305,7 @@ public class DataStore extends ComponentStore {
 	 * @return Alternate Identifiers from store.
 	 */
 	public Map<String, Set<Identifier>> readIdentifiers(boolean sort) {
-		return sort ? sortLong(identifiers) : identifiers;
+		return sort ? sortString(identifiers) : identifiers;
 	}
 
 	/**
@@ -443,5 +443,10 @@ public class DataStore extends ComponentStore {
 	// Sort uuid identifiers
 	private Map<String, Set<ReferenceSetMember>> sortUUID(Map<String, Set<ReferenceSetMember>> input) {
 		return input.entrySet().stream().sorted(Comparator.comparing(entry -> UUID.fromString(entry.getValue().iterator().next().getId()))).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
+	}
+
+	// Sort string identifiers
+	private <T> Map<String, Set<T>> sortString(Map<String, Set<T>> input) {
+		return input.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 	}
 }
