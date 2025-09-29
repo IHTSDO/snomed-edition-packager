@@ -28,4 +28,5 @@ public class RF2 {
 	public static final String STATED_RELATIONSHIP = "900000000000010007";
 	public static final String REFSET_OWL_AXIOM = "733073007";
 	public static final String REFSET_OWL_ONTOLOGY = "762103008";
+	public static final String REFSET_MODULE_DEPENDENCY = "900000000000534007";
 }

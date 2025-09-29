@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.domain.datastore.DataStore;
 import org.snomed.snomededitionpackager.domain.exporting.FileNameService;
+import org.snomed.snomededitionpackager.domain.rf2.ReferenceSetMember;
 import org.snomed.snomededitionpackager.domain.rf2.ReleasePackageInformation;
 import org.springframework.stereotype.Component;
 
@@ -158,6 +159,13 @@ public class ImportService {
 		// Delete tmp data
 		for (String unzippedPackagePath : unzippedPackagePaths) {
 			deleteDirectoryRecursively(new File(unzippedPackagePath));
+		}
+
+		// Verify compatibility
+		Map<String, Set<String>> compatibilityIssues = getCompatibilityIssues();
+		if (!compatibilityIssues.isEmpty()) {
+			LOGGER.error("Compatibility issues detected in MDRS:{}", compatibilityIssues);
+			return false;
 		}
 
 		return true;
@@ -367,5 +375,32 @@ public class ImportService {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	// Cannot depend on multiple versions of the same module
+	private Map<String, Set<String>> getCompatibilityIssues() {
+		Map<String, Set<ReferenceSetMember>> mdrs = dataStore.readReferenceSetMembersFromMDRSCache();
+		if (mdrs.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<String, Set<String>> compatibilityIssues = new HashMap<>();
+		for (Map.Entry<String, Set<ReferenceSetMember>> entrySet : mdrs.entrySet()) {
+			ReferenceSetMember latest = entrySet.getValue().iterator().next();
+			String referencedComponentId = latest.getReferencedComponentId();
+			String targetEffectiveTime = latest.getOtherValues()[1];
+
+			Set<String> targetEffectiveTimes = compatibilityIssues.get(referencedComponentId);
+			if (targetEffectiveTimes == null) {
+				targetEffectiveTimes = new HashSet<>();
+			}
+
+			targetEffectiveTimes.add(targetEffectiveTime);
+			compatibilityIssues.put(referencedComponentId, targetEffectiveTimes);
+		}
+
+		// Not an issue if only one version found
+		compatibilityIssues.entrySet().removeIf(entry -> entry.getValue().size() == 1);
+		return compatibilityIssues;
 	}
 }

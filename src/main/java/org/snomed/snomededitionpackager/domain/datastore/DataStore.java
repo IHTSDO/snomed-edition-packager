@@ -21,6 +21,7 @@ public class DataStore extends ComponentStore {
 	private final Map<String, Set<ConcreteRelationship>> concreteRelationships = new HashMap<>();
 	private final Map<String, Set<ReferenceSetMember>> axioms = new HashMap<>();
 	private final Map<String, Set<ReferenceSetMember>> referenceSetMembers = new HashMap<>();
+	private final Map<String, Set<ReferenceSetMember>> mdrsReferenceSetMembers = new HashMap<>();
 	private final Map<String, Set<Identifier>> identifiers = new HashMap<>();
 	private final Map<String, String> fileNameByRefsetId = new HashMap<>();
 	private final Map<String, String> headersByRefsetId = new HashMap<>();
@@ -239,6 +240,10 @@ public class DataStore extends ComponentStore {
 
 		value.add(referenceSetMember);
 		this.referenceSetMembers.put(referenceSetMember.getId(), value);
+
+		if (RF2.REFSET_MODULE_DEPENDENCY.equals(referenceSetMember.getRefsetId())) {
+			cacheMDRSReferenceSetMember(referenceSetMember);
+		}
 	}
 
 	/**
@@ -248,6 +253,15 @@ public class DataStore extends ComponentStore {
 	 */
 	public Map<String, Set<ReferenceSetMember>> readReferenceSetMembers() {
 		return referenceSetMembers;
+	}
+
+	/**
+	 * Return MDRS entries from store.
+	 *
+	 * @return MDRS entries from store.
+	 */
+	public Map<String, Set<ReferenceSetMember>> readReferenceSetMembersFromMDRSCache() {
+		return mdrsReferenceSetMembers;
 	}
 
 	/**
@@ -418,6 +432,7 @@ public class DataStore extends ComponentStore {
 		this.headersByRefsetId.clear();
 		this.releasePackageInformations.clear();
 		this.emptyFiles.clear();
+		this.mdrsReferenceSetMembers.clear();
 	}
 
 	@Override
@@ -448,5 +463,20 @@ public class DataStore extends ComponentStore {
 	// Sort string identifiers
 	private <T> Map<String, Set<T>> sortString(Map<String, Set<T>> input) {
 		return input.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+	}
+
+	private void cacheMDRSReferenceSetMember(ReferenceSetMember referenceSetMember) {
+		if (referenceSetMember == null) {
+			return;
+		}
+
+		Set<ReferenceSetMember> value = this.mdrsReferenceSetMembers.get(referenceSetMember.getId());
+		if (value == null) {
+			// Sorted by newest effectiveTime first
+			value = new TreeSet<>((o1, o2) -> o2.getEffectiveTime().compareTo(o1.getEffectiveTime()));
+		}
+
+		value.add(referenceSetMember);
+		this.mdrsReferenceSetMembers.put(referenceSetMember.getId(), value);
 	}
 }
