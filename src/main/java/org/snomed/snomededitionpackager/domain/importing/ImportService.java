@@ -193,6 +193,7 @@ public class ImportService {
 							input = FileNameService.removeType(input);
 							input = FileNameService.removeShortNameEffectiveTime(input);
 							input = FileNameService.removeLeadingSlashes(input, 4);
+							input = FileNameService.removeDerivativePrefix(input);
 							String refsetId = columns[4];
 
 							referenceSetFileNameByRefsetId.putIfAbsent(refsetId, input);
@@ -237,6 +238,7 @@ public class ImportService {
 					int numberToKeep = input.contains("Refset/") ? 4 : 3;
 					input = FileNameService.removeLeadingSlashes(input, numberToKeep);
 					input = input + "_" + importConfiguration.getShortName() + "_" + importConfiguration.getEffectiveTime();
+					input = FileNameService.removeDerivativePrefix(input);
 
 					if (secondLine == null) {
 						// Only header is present

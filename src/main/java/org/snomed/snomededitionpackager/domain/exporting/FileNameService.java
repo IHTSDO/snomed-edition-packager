@@ -166,4 +166,41 @@ public class FileNameService {
 
 		return type + "/" + dataStore.getFileName(refsetId) + type + "_" + shortName + "_" + effectiveTime + ".txt";
 	}
+
+	// e.g. der2_sRefset_XXXXSimpleMapSnapshot_XX_20250930 => der2_sRefset_SimpleMapSnapshot_XX_20250930
+	public static String removeDerivativePrefix(String input) {
+		if (input == null || input.isEmpty()) {
+			return null;
+		}
+
+		String[] inputBySlash = input.split("/");
+		String[] inputByUnderscore = inputBySlash[inputBySlash.length - 1].split("_");
+		if (inputByUnderscore.length == 1) {
+			return input;
+		}
+
+		String thirdUnderscore = inputByUnderscore[2];
+		int index = -1;
+		for (int i = 0; i < thirdUnderscore.length(); i++) {
+			if (Character.isLowerCase(thirdUnderscore.charAt(i))) {
+				break;
+			}
+
+			if (mrcmIsNextWord(thirdUnderscore, i)) {
+				index = index + 1;
+				break;
+			}
+
+			index = i;
+		}
+
+		inputByUnderscore[2] = thirdUnderscore.substring(index);
+		inputBySlash[inputBySlash.length - 1] = String.join("_", inputByUnderscore);
+
+		return String.join("/", inputBySlash);
+	}
+
+	private static boolean mrcmIsNextWord(String thirdUnderscore, int startIndex) {
+		return thirdUnderscore.startsWith("MRCM", startIndex);
+	}
 }

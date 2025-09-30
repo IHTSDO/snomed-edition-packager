@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.snomed.snomededitionpackager.IntegrationTest;
 import org.snomed.snomededitionpackager.domain.rf2.RF2;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileNameServiceTest extends IntegrationTest {
@@ -140,6 +142,88 @@ class FileNameServiceTest extends IntegrationTest {
 		assertEquals("der2_cRefset_AssociationFull_MVN_20250101.txt", fullFileName);
 		snapshotFileName = isolateFileName(fileNameService.getReferenceSet(RF2.SNAPSHOT, SHORT_NAME, EFFECTIVE_TIME, "ASSOCIATION"));
 		assertEquals("der2_cRefset_AssociationSnapshot_MVN_20250101.txt", snapshotFileName);
+	}
+
+	@Test
+	void removeDerivativePrefix_ShouldDoExpected_WhenGivenSeveral() {
+		// given
+		List<String> input = List.of(
+				"fileName",
+				"Snapshot/Refset/Map/der2_sRefset_XXXXSimpleMapSnapshot_XX_20250930",
+				"Snapshot/Refset/Map/der2_sRefset_XXXXSimpleMapSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_scsRefset_XXXXComponentAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_scsRefset_XXXXComponentAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_StatedRelationship_XXXXSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_StatedRelationship_XXXXSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cissccRefset_XXXXMRCMAttributeDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cissccRefset_XXXXMRCMAttributeDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sssssssRefset_XXXXMRCMDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sssssssRefset_XXXXMRCMDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ssccRefset_XXXXMRCMAttributeRangeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ssccRefset_XXXXMRCMAttributeRangeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_TextDefinition_XXXXSnapshot-en_XX_20250930",
+				"Snapshot/Terminology/sct2_TextDefinition_XXXXSnapshot-en_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_XXXXSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_XXXXSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_RelationshipConcreteValues_XXXXSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_RelationshipConcreteValues_XXXXSnapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_XXXXAssociationReferenceSnapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_XXXXAssociationReferenceSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_XXXXMemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_XXXXMemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cRefset_XXXXMRCMModuleScopeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cRefset_XXXXMRCMModuleScopeSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_XXXXAttributeValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_XXXXAttributeValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ciRefset_XXXXDescriptionTypeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ciRefset_XXXXDescriptionTypeSnapshot_XX_20250930"
+		);
+
+		List<String> output = List.of(
+				"fileName",
+				"Snapshot/Refset/Map/der2_sRefset_SimpleMapSnapshot_XX_20250930",
+				"Snapshot/Refset/Map/der2_sRefset_SimpleMapSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_scsRefset_ComponentAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_scsRefset_ComponentAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_StatedRelationship_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_StatedRelationship_Snapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cissccRefset_MRCMAttributeDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cissccRefset_MRCMAttributeDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sssssssRefset_MRCMDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sssssssRefset_MRCMDomainSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ssccRefset_MRCMAttributeRangeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ssccRefset_MRCMAttributeRangeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_TextDefinition_Snapshot-en_XX_20250930",
+				"Snapshot/Terminology/sct2_TextDefinition_Snapshot-en_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_RelationshipConcreteValues_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_RelationshipConcreteValues_Snapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_AssociationReferenceSnapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_AssociationReferenceSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_sscsRefset_MemberAnnotationStringValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cRefset_MRCMModuleScopeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_cRefset_MRCMModuleScopeSnapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Terminology/sct2_Identifier_Snapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_AttributeValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Content/der2_cRefset_AttributeValueSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ciRefset_DescriptionTypeSnapshot_XX_20250930",
+				"Snapshot/Refset/Metadata/der2_ciRefset_DescriptionTypeSnapshot_XX_20250930"
+		);
+
+		// when
+		for (int i = 0; i < input.size(); i++) {
+			// then
+			assertEquals(output.get(i), FileNameService.removeDerivativePrefix(input.get(i)));
+		}
 	}
 
 	// Adapted from Snomed Boot
