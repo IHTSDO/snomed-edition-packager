@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class GoogleSheetReport {
+public class GoogleSheetReport implements Report {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GoogleSheetReport.class);
 	private static final Set<ReportConfiguration.ReportOutputType> OUTPUT_TYPES = Set.of(ReportConfiguration.ReportOutputType.GOOGLE);
 	private static final Set<ReportConfiguration.ReportFormatType> FORMAT_TYPES = Set.of(ReportConfiguration.ReportFormatType.CSV);
@@ -19,6 +19,12 @@ public class GoogleSheetReport {
 	private ReportManager reportManager;
 	private boolean initialised;
 
+	@Override
+	public boolean isInitialised() {
+		return initialised;
+	}
+
+	@Override
 	public boolean createSpreadsheet(String reportName, String reportEnvironment, String[] tabs, String[] columns) {
 		if (reportName == null || reportName.isEmpty() || reportEnvironment == null || reportEnvironment.isEmpty() || tabs == null || tabs.length == 0 || columns == null || columns.length == 0) {
 			LOGGER.trace("Cannot create spreadsheet: invalid parameters.");
@@ -29,6 +35,7 @@ public class GoogleSheetReport {
 		return this.reportManager != null && this.initialised;
 	}
 
+	@Override
 	public boolean writeLine(int index, String line) {
 		if (this.reportManager == null || line == null || line.isEmpty()) {
 			LOGGER.trace("Cannot create spreadsheet: invalid parameters.");
@@ -38,6 +45,7 @@ public class GoogleSheetReport {
 		return doWriteToReportFile(index, line);
 	}
 
+	@Override
 	public boolean flush() {
 		return doFlushFiles();
 	}
@@ -54,7 +62,7 @@ public class GoogleSheetReport {
 			this.initialised = true;
 		} catch (Exception e) {
 			this.initialised = false;
-			LOGGER.error("Failed to instantiate ReportManager.", e);
+			LOGGER.error("Failed to instantiate ReportManager: {}", e.getMessage());
 		}
 	}
 

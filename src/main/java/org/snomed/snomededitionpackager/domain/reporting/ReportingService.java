@@ -14,11 +14,13 @@ public class ReportingService {
 
 	private final ApplicationProperties applicationProperties;
 	private final GoogleSheetReport googleSheetReport;
+	private final CSVReport csvReport;
 	private boolean createReport = false;
 
-	public ReportingService(ApplicationProperties applicationProperties, GoogleSheetReport googleSheetReport) {
+	public ReportingService(ApplicationProperties applicationProperties, GoogleSheetReport googleSheetReport, CSVReport csvReport) {
 		this.applicationProperties = applicationProperties;
 		this.googleSheetReport = googleSheetReport;
+		this.csvReport = csvReport;
 	}
 
 	public boolean openReport(String reportName, String[] tabs, String[] columns) {
@@ -34,6 +36,15 @@ public class ReportingService {
 		}
 
 		boolean success = googleSheetReport.createSpreadsheet(reportName, applicationProperties.getAppEnvironment(), tabs, columns);
+		if (success) {
+			LOGGER.info("Created remote Google Sheet.");
+		} else {
+			success = csvReport.createSpreadsheet(reportName, applicationProperties.getAppEnvironment(), tabs, columns);
+			if (success) {
+				LOGGER.info("Created local CSV file.");
+			}
+		}
+
 		this.createReport = success;
 		return success;
 	}
@@ -49,7 +60,7 @@ public class ReportingService {
 			return false;
 		}
 
-		return googleSheetReport.writeLine(index, line);
+		return getReportImpl().writeLine(index, line);
 	}
 
 	public boolean writeCSV(int index, String... line) {
@@ -62,6 +73,10 @@ public class ReportingService {
 			return false;
 		}
 
-		return googleSheetReport.flush();
+		return getReportImpl().flush();
+	}
+
+	private Report getReportImpl() {
+		return googleSheetReport.isInitialised() ? googleSheetReport : csvReport;
 	}
 }

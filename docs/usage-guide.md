@@ -36,7 +36,7 @@ See below for an example combining all of the above options.
 
 `report --input /Users/example/Desktop/edition.zip /Users/example/Desktop/extension.zip`
 
-Please note, this command currently requires a Google service account json file (`secure/google-api-secret.json`).
+Please note, this command has conditional behaviour. If a locally-stored Google service account json file (`secure/google-api-secret.json`) is found, then the report will be written to Google Sheets; otherwise, the report will be written to a locally-stored CSV file.
 
 ---
-Last updated 25/07/2025
+Last updated 01/10/2025
