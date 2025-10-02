@@ -144,7 +144,7 @@ public class ImportService {
 		}
 
 		// Cache file names
-		boolean success = cacheReferenceSets(unzippedPackagePaths);
+		boolean success = cacheReferenceSets(importConfiguration, unzippedPackagePaths);
 		if (!success) {
 			LOGGER.error("Failed to cache file names");
 			return false;
@@ -172,7 +172,7 @@ public class ImportService {
 	}
 
 	// Lost file names and headers; cache from given file(s)
-	private boolean cacheReferenceSets(Set<String> unzippedPackagePaths) {
+	private boolean cacheReferenceSets(ImportConfiguration importConfiguration, Set<String> unzippedPackagePaths) {
 		Map<String, String> referenceSetFileNameByRefsetId = new HashMap<>();
 		Map<String, String> referenceSetHeaderByRefsetId = new HashMap<>();
 
@@ -195,6 +195,7 @@ public class ImportService {
 							input = FileNameService.removeLeadingSlashes(input, 4);
 							input = FileNameService.removeDerivativePrefix(input);
 							String refsetId = columns[4];
+							input = replaceReferenceSetName(importConfiguration, refsetId, input);
 
 							referenceSetFileNameByRefsetId.putIfAbsent(refsetId, input);
 							referenceSetHeaderByRefsetId.putIfAbsent(refsetId, header);
@@ -404,5 +405,13 @@ public class ImportService {
 		// Not an issue if only one version found
 		compatibilityIssues.entrySet().removeIf(entry -> entry.getValue().size() == 1);
 		return compatibilityIssues;
+	}
+
+	private String replaceReferenceSetName(ImportConfiguration importConfiguration, String refsetId, String input) {
+		if (importConfiguration.getReferenceSetsByType().contains(refsetId)) {
+			return FileNameService.replaceReferenceSetNameWithReferenceSetType(input, refsetId);
+		}
+
+		return input;
 	}
 }

@@ -226,6 +226,19 @@ class FileNameServiceTest extends IntegrationTest {
 		}
 	}
 
+	@Test
+	void replaceReferenceSetNameWithReferenceSetType_ShouldReplaceName() {
+		// given
+		String input = "Refset/Content/der2_cRefset_Association";
+		String output = "Refset/Content/der2_cRefset_12345";
+
+		// when
+		String result = FileNameService.replaceReferenceSetNameWithReferenceSetType(input, "12345");
+
+		// then
+		assertEquals(output, result);
+	}
+
 	// Adapted from Snomed Boot
 	// https://github.com/IHTSDO/snomed-boot/blob/8e31003bf21c97f8d2bea6ef72a417bfc01e4216/src/main/java/org/ihtsdo/otf/snomedboot/ReleaseImporter.java#L440
 	private boolean recognise(String fileName, String fileType) {

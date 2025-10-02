@@ -5,12 +5,14 @@ public class ImportConfiguration {
 	private final boolean full;
 	private final String shortName;
 	private final String effectiveTime;
+	private final String referenceSetsByType;
 
-	public ImportConfiguration(String input, String full, String shortName, String effectiveTime) {
+	public ImportConfiguration(String input, String full, String shortName, String effectiveTime, String referenceSetsByType) {
 		this.input = input;
 		this.full = "true".equals(full);
 		this.shortName = shortName;
 		this.effectiveTime = effectiveTime;
+		this.referenceSetsByType = referenceSetsByType;
 	}
 
 	public String getInput() {
@@ -27,5 +29,9 @@ public class ImportConfiguration {
 
 	public String getEffectiveTime() {
 		return effectiveTime;
+	}
+
+	public String getReferenceSetsByType() {
+		return referenceSetsByType;
 	}
 }

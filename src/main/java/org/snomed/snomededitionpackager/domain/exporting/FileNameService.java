@@ -200,6 +200,21 @@ public class FileNameService {
 		return String.join("/", inputBySlash);
 	}
 
+	// e.g. Refset/Content/der2_cRefset_AssociationReference => Refset/Content/der2_cRefset_900000000000527005
+	public static String replaceReferenceSetNameWithReferenceSetType(String referenceSetName, String referenceSetType) {
+		if (referenceSetName == null || referenceSetName.isEmpty() || referenceSetType == null || referenceSetType.isEmpty()) {
+			return null;
+		}
+
+		String[] split = referenceSetName.split("_");
+		if (split.length == 1) {
+			return referenceSetName;
+		}
+
+		split[split.length - 1] = referenceSetType;
+		return String.join("_", split);
+	}
+
 	private static boolean mrcmIsNextWord(String thirdUnderscore, int startIndex) {
 		return thirdUnderscore.startsWith("MRCM", startIndex);
 	}

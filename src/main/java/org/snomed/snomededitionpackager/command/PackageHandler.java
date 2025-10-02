@@ -62,7 +62,7 @@ public class PackageHandler {
 		long start = System.currentTimeMillis();
 		String shortName = arguments.getArg("shortName", "XX");
 		String effectiveTime = arguments.getArg("effectiveTime", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		ImportConfiguration importConfiguration = new ImportConfiguration(arguments.getArg("input"), arguments.getArg("full"), shortName, effectiveTime);
+		ImportConfiguration importConfiguration = new ImportConfiguration(arguments.getArg("input"), arguments.getArg("full"), shortName, effectiveTime, arguments.getArg("referenceSetsByType"));
 		boolean success = importService.importPackages(importConfiguration);
 
 		long end = System.currentTimeMillis();
