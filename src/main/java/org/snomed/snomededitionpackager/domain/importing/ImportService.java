@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.domain.datastore.DataStore;
 import org.snomed.snomededitionpackager.domain.exporting.FileNameService;
+import org.snomed.snomededitionpackager.domain.rf2.RF2;
 import org.snomed.snomededitionpackager.domain.rf2.ReferenceSetMember;
 import org.snomed.snomededitionpackager.domain.rf2.ReleasePackageInformation;
 import org.springframework.stereotype.Component;
@@ -131,6 +132,26 @@ public class ImportService {
 			unzippedPackagePaths.add(unzippedPackagePath);
 		}
 
+		// MDRS first for compatibility check
+		for (String unzippedPackagePath : unzippedPackagePaths) {
+			try {
+				releaseImporter.loadSnapshotReleaseFiles(unzippedPackagePath, new LoadingProfile().withRefsets(RF2.REFSET_MODULE_DEPENDENCY).withIncludedReferenceSetFilenamePattern(".*ModuleDependency.*"), new ComponentFactoryImpl(dataStore), false);
+			} catch (Exception e) {
+				LOGGER.error("Failed to load MRCM", e);
+				return false;
+			}
+		}
+
+		// Verify compatibility
+		Map<String, Set<String>> compatibilityIssues = getCompatibilityIssues();
+		if (!compatibilityIssues.isEmpty()) {
+			LOGGER.error("Compatibility issues detected in MDRS:{}", compatibilityIssues);
+			return false;
+		}
+
+		// No compatibility issues detected; clear store
+		dataStore.clear();
+
 		// Load content into memory
 		for (String unzippedPackagePath : unzippedPackagePaths) {
 			try {
@@ -159,13 +180,6 @@ public class ImportService {
 		// Delete tmp data
 		for (String unzippedPackagePath : unzippedPackagePaths) {
 			deleteDirectoryRecursively(new File(unzippedPackagePath));
-		}
-
-		// Verify compatibility
-		Map<String, Set<String>> compatibilityIssues = getCompatibilityIssues();
-		if (!compatibilityIssues.isEmpty()) {
-			LOGGER.error("Compatibility issues detected in MDRS:{}", compatibilityIssues);
-			return false;
 		}
 
 		return true;
@@ -390,6 +404,10 @@ public class ImportService {
 		Map<String, Set<String>> compatibilityIssues = new HashMap<>();
 		for (Map.Entry<String, Set<ReferenceSetMember>> entrySet : mdrs.entrySet()) {
 			ReferenceSetMember latest = entrySet.getValue().iterator().next();
+			if ("0".equals(latest.getActive())) {
+				continue;
+			}
+
 			String referencedComponentId = latest.getReferencedComponentId();
 			String targetEffectiveTime = latest.getOtherValues()[1];
 
