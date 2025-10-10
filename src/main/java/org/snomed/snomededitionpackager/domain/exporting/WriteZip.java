@@ -29,8 +29,12 @@ public class WriteZip implements ExportWriter {
 				ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(zipFilePath));
 				Stream<Path> paths = Files.walk(sourceDirPath)
 		) {
+			String rootFolderName = zipFilePath.getFileName().toString().replaceFirst("\\.zip$", "");
+			exportRootFolderName(rootFolderName, zs);
+
 			paths.filter(path -> !Files.isDirectory(path)).forEach(path -> {
-				ZipEntry zipEntry = new ZipEntry(sourceDirPath.relativize(path).toString());
+				String entryName = rootFolderName + "/" + sourceDirPath.relativize(path).toString().replace("\\", "/");
+				ZipEntry zipEntry = new ZipEntry(entryName);
 				try {
 					zs.putNextEntry(zipEntry);
 					Files.copy(path, zs);
@@ -47,6 +51,12 @@ public class WriteZip implements ExportWriter {
 		deleteDirectoryRecursively(new File(rf2Package));
 
 		return true;
+	}
+
+	private void exportRootFolderName(String rootFolderName, ZipOutputStream zs) throws IOException {
+		ZipEntry rootDirEntry = new ZipEntry(rootFolderName + "/");
+		zs.putNextEntry(rootDirEntry);
+		zs.closeEntry();
 	}
 
 	private void deleteDirectoryRecursively(File file) {

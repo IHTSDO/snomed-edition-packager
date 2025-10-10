@@ -23,13 +23,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getConcept(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getConcept(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getConcept(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getConcept(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -66,13 +67,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getConcept(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getConcept(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getConcept(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getConcept(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -101,13 +103,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getDescription(RF2.FULL, "en", "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getDescription(RF2.SNAPSHOT, "en", "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getDescription(rf2PackageName, RF2.FULL, "en", "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getDescription(rf2PackageName, RF2.SNAPSHOT, "en", "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -144,13 +147,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getDescription(RF2.FULL, "en", "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getDescription(RF2.SNAPSHOT, "en", "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getDescription(rf2PackageName, RF2.FULL, "en", "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getDescription(rf2PackageName, RF2.SNAPSHOT, "en", "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -179,13 +183,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getIdentifier(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getIdentifier(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getIdentifier(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getIdentifier(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -222,13 +227,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getIdentifier(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getIdentifier(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getIdentifier(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getIdentifier(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -257,13 +263,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -300,13 +307,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -335,13 +343,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getConcreteRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getConcreteRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getConcreteRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getConcreteRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -378,13 +387,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getConcreteRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getConcreteRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getConcreteRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getConcreteRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -414,13 +424,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getAxiom(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getAxiom(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getAxiom(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getAxiom(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -457,13 +468,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getAxiom(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getAxiom(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getAxiom(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getAxiom(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -492,13 +504,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getStatedRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getStatedRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getStatedRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getStatedRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -535,13 +548,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getStatedRelationship(RF2.FULL, "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getStatedRelationship(RF2.SNAPSHOT, "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getStatedRelationship(rf2PackageName, RF2.FULL, "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getStatedRelationship(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -570,13 +584,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getTextDefinition(RF2.FULL, "en", "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getTextDefinition(RF2.SNAPSHOT, "en", "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getTextDefinition(rf2PackageName, RF2.FULL, "en", "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getTextDefinition(rf2PackageName, RF2.SNAPSHOT, "en", "MVN", "20250101"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -613,13 +628,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(FileNameService.getTextDefinition(RF2.FULL, "en", "MVN", "20250101"));
-		List<String> snapshot = unzipped.get(FileNameService.getTextDefinition(RF2.SNAPSHOT, "en", "MVN", "20250101"));
+		List<String> full = unzipped.get(FileNameService.getTextDefinition(rf2PackageName, RF2.FULL, "en", "MVN", "20250101"));
+		List<String> snapshot = unzipped.get(FileNameService.getTextDefinition(rf2PackageName, RF2.SNAPSHOT, "en", "MVN", "20250101"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -652,13 +668,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "false", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(fileNameService.getReferenceSet(RF2.FULL, "MVN", "20250101", "SIMPLE"));
-		List<String> snapshot = unzipped.get(fileNameService.getReferenceSet(RF2.SNAPSHOT, "MVN", "20250101", "SIMPLE"));
+		List<String> full = unzipped.get(fileNameService.getReferenceSet(rf2PackageName, RF2.FULL, "MVN", "20250101", "SIMPLE"));
+		List<String> snapshot = unzipped.get(fileNameService.getReferenceSet(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101", "SIMPLE"));
 
 		// assert
 		assertEquals(4, full.size());
@@ -698,13 +715,14 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
 		// unzip
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
-		List<String> full = unzipped.get(fileNameService.getReferenceSet(RF2.FULL, "MVN", "20250101", "SIMPLE"));
-		List<String> snapshot = unzipped.get(fileNameService.getReferenceSet(RF2.SNAPSHOT, "MVN", "20250101", "SIMPLE"));
+		List<String> full = unzipped.get(fileNameService.getReferenceSet(rf2PackageName, RF2.FULL, "MVN", "20250101", "SIMPLE"));
+		List<String> snapshot = unzipped.get(fileNameService.getReferenceSet(rf2PackageName, RF2.SNAPSHOT, "MVN", "20250101", "SIMPLE"));
 
 		// assert
 		assertEquals(7, full.size());
@@ -723,6 +741,7 @@ class ExportServiceTest extends IntegrationTest {
 	void export_ShouldWriteExpectedMetadata() {
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
@@ -730,11 +749,11 @@ class ExportServiceTest extends IntegrationTest {
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
 
 		// assert readme
-		List<String> readme = unzipped.get(FileNameService.getReadme("20250101"));
+		List<String> readme = unzipped.get(FileNameService.getReadme(rf2PackageName, "20250101"));
 		assertFalse(readme.isEmpty());
 
 		// assert json
-		List<String> json = unzipped.get(FileNameService.RELEASE_PACKAGE_INFORMATION_JSON);
+		List<String> json = unzipped.get(FileNameService.getReleasePackageInformation(rf2PackageName));
 		assertFalse(json.isEmpty());
 	}
 
@@ -746,6 +765,7 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
@@ -753,7 +773,7 @@ class ExportServiceTest extends IntegrationTest {
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
 
 		// assert
-		List<String> textDefinition = unzipped.get(fileName + ".txt");
+		List<String> textDefinition = unzipped.get(rf2PackageName + "/" + fileName + ".txt");
 		assertEquals(1, textDefinition.size());
 		assertEquals(RF2.HEADER_TEXT_DEFINITION, textDefinition.get(0));
 	}
@@ -766,6 +786,7 @@ class ExportServiceTest extends IntegrationTest {
 
 		// export
 		String exportLocation = createExportLocation();
+		String rf2PackageName = exportLocation.split("/")[1];
 		boolean success = exportService.export(new ExportConfiguration(exportLocation, "MVN", "20250101", "*", "true", "true", "*"));
 		assertTrue(success);
 
@@ -773,7 +794,7 @@ class ExportServiceTest extends IntegrationTest {
 		Map<String, List<String>> unzipped = unzipExportLocation(exportLocation);
 
 		// assert
-		List<String> identifier = unzipped.get(fileName + ".txt");
+		List<String> identifier = unzipped.get(rf2PackageName + "/" + fileName + ".txt");
 		assertEquals(1, identifier.size());
 		assertEquals(RF2.HEADER_IDENTIFIER, identifier.get(0));
 	}
