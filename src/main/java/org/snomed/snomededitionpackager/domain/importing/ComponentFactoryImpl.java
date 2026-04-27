@@ -64,7 +64,7 @@ public class ComponentFactoryImpl implements HistoryAwareComponentFactory {
 	}
 
 	@Override
-	public void newReferenceSetMemberState(String[] fieldNames, String id, String effectiveTime, String active, String moduleId, String refsetId, String referencedComponentId, String... otherValues) {
+	public void newReferenceSetMemberState(String filename, String[] fieldNames, String id, String effectiveTime, String active, String moduleId, String refsetId, String referencedComponentId, String... otherValues) {
 		ReferenceSetMember referenceSetMember = new ReferenceSetMember().setFieldNames(fieldNames).setId(id).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setRefsetId(refsetId).setReferencedComponentId(referencedComponentId).setOtherValues(otherValues);
 		if (RF2.REFSET_OWL_AXIOM.equals(refsetId) || RF2.REFSET_OWL_ONTOLOGY.equals(refsetId)) {
 			componentStore.createAxiom(referenceSetMember);
