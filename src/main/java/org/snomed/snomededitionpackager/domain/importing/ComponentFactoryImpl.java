@@ -34,12 +34,12 @@ public class ComponentFactoryImpl implements HistoryAwareComponentFactory {
 	}
 
 	@Override
-	public void newConceptState(String conceptId, String effectiveTime, String active, String moduleId, String definitionStatusId) {
+	public void newConceptState(String filename, long lineNumber, String conceptId, String effectiveTime, String active, String moduleId, String definitionStatusId) {
 		componentStore.createConcept(new Concept().setConceptId(conceptId).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setDefinitionStatusId(definitionStatusId));
 	}
 
 	@Override
-	public void newDescriptionState(String id, String effectiveTime, String active, String moduleId, String conceptId, String languageCode, String typeId, String term, String caseSignificanceId) {
+	public void newDescriptionState(String filename, long lineNumber, String id, String effectiveTime, String active, String moduleId, String conceptId, String languageCode, String typeId, String term, String caseSignificanceId) {
 		Description description = new Description().setDescriptionId(id).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setConceptId(conceptId).setLanguageCode(languageCode).setTypeId(typeId).setTerm(term).setCaseSignificanceId(caseSignificanceId);
 		if (RF2.TEXT_DEFINITION.equals(description.getTypeId())) {
 			componentStore.createTextDefinition(description);
@@ -49,7 +49,7 @@ public class ComponentFactoryImpl implements HistoryAwareComponentFactory {
 	}
 
 	@Override
-	public void newRelationshipState(String id, String effectiveTime, String active, String moduleId, String sourceId, String destinationId, String relationshipGroup, String typeId, String characteristicTypeId, String modifierId) {
+	public void newRelationshipState(String filename, long lineNumber, String id, String effectiveTime, String active, String moduleId, String sourceId, String destinationId, String relationshipGroup, String typeId, String characteristicTypeId, String modifierId) {
 		Relationship relationship = new Relationship().setRelationshipId(id).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setSourceId(sourceId).setDestinationId(destinationId).setRelationshipGroup(relationshipGroup).setTypeId(typeId).setCharacteristicTypeId(characteristicTypeId).setModifierId(modifierId);
 		if (RF2.STATED_RELATIONSHIP.equals(characteristicTypeId)) {
 			componentStore.createStatedRelationship(relationship);
@@ -59,12 +59,12 @@ public class ComponentFactoryImpl implements HistoryAwareComponentFactory {
 	}
 
 	@Override
-	public void newConcreteRelationshipState(String id, String effectiveTime, String active, String moduleId, String sourceId, String value, String relationshipGroup, String typeId, String characteristicTypeId, String modifierId) {
+	public void newConcreteRelationshipState(String filename, long lineNumber, String id, String effectiveTime, String active, String moduleId, String sourceId, String value, String relationshipGroup, String typeId, String characteristicTypeId, String modifierId) {
 		componentStore.createConcreteRelationship(new ConcreteRelationship().setRelationshipId(id).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setSourceId(sourceId).setValue(value).setRelationshipGroup(relationshipGroup).setTypeId(typeId).setCharacteristicTypeId(characteristicTypeId).setModifierId(modifierId));
 	}
 
 	@Override
-	public void newReferenceSetMemberState(String filename, String[] fieldNames, String id, String effectiveTime, String active, String moduleId, String refsetId, String referencedComponentId, String... otherValues) {
+	public void newReferenceSetMemberState(String filename, long lineNumber, String[] fieldNames, String id, String effectiveTime, String active, String moduleId, String refsetId, String referencedComponentId, String... otherValues) {
 		ReferenceSetMember referenceSetMember = new ReferenceSetMember().setFieldNames(fieldNames).setId(id).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setRefsetId(refsetId).setReferencedComponentId(referencedComponentId).setOtherValues(otherValues);
 		if (RF2.REFSET_OWL_AXIOM.equals(refsetId) || RF2.REFSET_OWL_ONTOLOGY.equals(refsetId)) {
 			componentStore.createAxiom(referenceSetMember);
@@ -74,7 +74,7 @@ public class ComponentFactoryImpl implements HistoryAwareComponentFactory {
 	}
 
 	@Override
-	public void newIdentifierState(String alternateIdentifier, String effectiveTime, String active, String moduleId, String identifierSchemeId, String referencedComponentId) {
+	public void newIdentifierState(String filename, long lineNumber, String alternateIdentifier, String effectiveTime, String active, String moduleId, String identifierSchemeId, String referencedComponentId) {
 		componentStore.createIdentifier(new Identifier().setAlternateIdentifier(alternateIdentifier).setEffectiveTime(effectiveTime).setActive(active).setModuleId(moduleId).setIdentifierSchemeId(identifierSchemeId).setReferencedComponentId(referencedComponentId));
 	}
 
