@@ -17,6 +17,12 @@
     <name>snomed-edition-packager</name>
     <description>Command line tool for combining several RF2 packages into one singular package.</description>
 
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <docker.base-image>amazoncorretto:25</docker.base-image>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.shell</groupId>
