@@ -108,8 +108,8 @@ Important classes:
 
 ### 4.1  Prerequisites
 
-1. **JDK 17** (matching the parent BOM).
-2. **Maven 3.8+** (wrapper provided → `./mvnw`).
+1. **JDK 25** (matching the parent BOM).
+2. **Maven 3.9+** (wrapper provided → `./mvnw`).
 3. ≥ **14 GB RAM** minimum (the merge process is memory intensive).
 4. **Google Sheets API access** (optional, for report generation features).
 
@@ -148,4 +148,4 @@ java -Xms14g -Xmx14g \
 
 ---
 
-© International Health Terminology Standards Development Organisation 2024.  All rights reserved.
+© International Health Terminology Standards Development Organisation 2026.  All rights reserved.
