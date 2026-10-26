@@ -1,12 +1,12 @@
 package org.snomed.snomededitionpackager.domain.exporting;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snomed.snomededitionpackager.domain.datastore.DataStore;
 import org.snomed.snomededitionpackager.domain.rf2.LanguageReferenceSet;
 import org.snomed.snomededitionpackager.domain.rf2.ReleasePackageInformation;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -16,7 +16,7 @@ import java.util.Set;
 @Component
 public class WriteReleasePackageInformation implements ExportWriter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WriteReleasePackageInformation.class);
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+	private static final JsonMapper JSON_MAPPER = new JsonMapper();
 
 	private final DataStore dataStore;
 
@@ -59,7 +59,7 @@ public class WriteReleasePackageInformation implements ExportWriter {
 			}
 		} else {
 			try {
-				releasePackageInformation = OBJECT_MAPPER.readValue(new File(exportConfiguration.getReleasePackageInformation()), ReleasePackageInformation.class);
+				releasePackageInformation = JSON_MAPPER.readValue(new File(exportConfiguration.getReleasePackageInformation()), ReleasePackageInformation.class);
 			} catch (Exception e) {
 				LOGGER.error("Failed to read local release package information file.", e);
 				return false;
@@ -67,7 +67,7 @@ public class WriteReleasePackageInformation implements ExportWriter {
 		}
 
 		try {
-			OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValue(singularPath.toFile(), releasePackageInformation);
+			JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValue(singularPath.toFile(), releasePackageInformation);
 		} catch (Exception e) {
 			LOGGER.error("Failed to write release package information file", e);
 			return false;

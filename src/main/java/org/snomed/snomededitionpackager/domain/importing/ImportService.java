@@ -1,6 +1,5 @@
 package org.snomed.snomededitionpackager.domain.importing;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ihtsdo.otf.snomedboot.ReleaseImporter;
 import org.ihtsdo.otf.snomedboot.factory.LoadingProfile;
 import org.slf4j.Logger;
@@ -11,6 +10,8 @@ import org.snomed.snomededitionpackager.domain.rf2.RF2;
 import org.snomed.snomededitionpackager.domain.rf2.ReferenceSetMember;
 import org.snomed.snomededitionpackager.domain.rf2.ReleasePackageInformation;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -382,9 +383,9 @@ public class ImportService {
 					.findFirst()
 					.map(path -> {
 						try {
-							ObjectMapper objectMapper = new ObjectMapper();
-							return objectMapper.readValue(path.toFile(), ReleasePackageInformation.class);
-						} catch (IOException e) {
+							JsonMapper jsonMapper = new JsonMapper();
+							return jsonMapper.readValue(path.toFile(), ReleasePackageInformation.class);
+						} catch (JacksonException e) {
 							return null;
 						}
 					});
